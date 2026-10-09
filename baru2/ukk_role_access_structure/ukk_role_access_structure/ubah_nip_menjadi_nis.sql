@@ -1,0 +1,3 @@
+USE db_ukk_2026;
+
+ALTER TABLE t_guru CHANGE COLUMN nip nis VARCHAR(30) NOT NULL;
