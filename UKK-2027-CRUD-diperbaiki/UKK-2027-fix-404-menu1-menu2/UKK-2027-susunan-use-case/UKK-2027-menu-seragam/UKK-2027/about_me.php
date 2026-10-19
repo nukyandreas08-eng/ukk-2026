@@ -1,2 +1,0 @@
-<?php include 'includes/cek_session.php'; ?>
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>About Me</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head><body class="p-3"><h2>About Me</h2><hr><p>Halaman informasi pengembang aplikasi UKK 2027.</p><a class="btn btn-primary" href="dashboard.php?embed=1">Kembali ke Dashboard</a></body></html>
