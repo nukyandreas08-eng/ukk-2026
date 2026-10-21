@@ -1,0 +1,21 @@
+PETUNJUK PERBAIKAN PROJECT UKK
+
+Perubahan yang sudah diterapkan:
+1. Kelola Siswa: kolom ID pada tabel menjadi nomor urut (No), sementara ID database asli tetap dipakai untuk Edit dan Hapus.
+2. Batas NIS maksimal 10 karakter diterapkan di formulir tambah, formulir edit, dan validasi PHP di server.
+3. Kelola Guru: pilihan dropdown Akun Guru dihapus. Form tambah guru membuat akun login dengan role guru secara otomatis dari nama dan email.
+4. Password dan konfirmasi password harus sama dan minimal 8 karakter. Password disimpan menggunakan password_hash().
+5. Edit Guru: akun login ikut disinkronkan dengan nama dan email guru. Password baru boleh dikosongkan jika tidak ingin diubah. Guru lama yang belum punya akun dapat dibuatkan akun dari halaman Edit dengan mengisi password.
+6. Hapus Guru: data guru dan akun login terkait dihapus bersama.
+7. Kelola Kelas: pilihan Tahun Ajaran diambil dari tabel t_tahun_ajaran dan disimpan di kolom t_kelas.tahun_ajaran_id. Tahun ajaran ditampilkan pada tabel Kelola Kelas.
+8. Tampilan menggunakan struktur dan kelas Bootstrap yang sudah ada; tidak ada desain ulang besar.
+
+PENTING - PEMBARUAN DATABASE:
+- Jika database db_ukk_2026 yang sedang digunakan sudah ada dari versi lama, jalankan file MIGRASI_TAHUN_AJARAN_KELAS.sql satu kali melalui phpMyAdmin > database db_ukk_2026 > Import.
+- Jangan jalankan file migrasi jika kolom tahun_ajaran_id sudah ada di tabel t_kelas. Bisa diperiksa melalui tab Structure atau perintah: DESCRIBE t_kelas;
+- Setelah migrasi, data kelas lama akan menampilkan "Belum dipilih" pada kolom Tahun Ajaran karena relasi tahun ajaran belum pernah tersimpan. Buka Edit pada masing-masing kelas dan pilih Tahun Ajaran yang benar.
+- File db_ukk_2026 (3).sql juga sudah diperbarui agar struktur tabel t_kelas memiliki kolom tahun_ajaran_id saat database dibuat dari dump tersebut.
+
+PEMERIKSAAN:
+- Semua file PHP diperiksa dengan php -l (pemeriksaan sintaks PHP).
+- Koneksi ke MySQL dan proses aplikasi langsung belum bisa diuji dari lingkungan ini. Jalankan project melalui XAMPP dan pastikan database db_ukk_2026 sudah diperbarui.
