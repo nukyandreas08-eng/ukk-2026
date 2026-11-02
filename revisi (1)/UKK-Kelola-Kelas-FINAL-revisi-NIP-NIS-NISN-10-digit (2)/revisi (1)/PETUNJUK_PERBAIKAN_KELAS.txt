@@ -1,0 +1,21 @@
+REVISI KELOLA KELAS DAN RELASI TAHUN AJARAN
+
+Perubahan:
+1. Kelola Kelas, Tambah Kelas, Edit Kelas, dan Hapus Kelas diperbaiki.
+2. Pilihan Tahun Ajaran pada form kelas diambil langsung dari tabel t_tahun_ajaran (menu Kelola Tahun Ajaran).
+3. Setiap kelas wajib memilih Tahun Ajaran yang sudah tersedia. Jika belum ada Tahun Ajaran, pengguna diarahkan untuk membuatnya terlebih dahulu.
+4. Tabel Kelola Kelas menampilkan Tahun Ajaran yang terhubung.
+5. Saat menghapus Tahun Ajaran, sistem menolak jika masih ada kelas yang memakai Tahun Ajaran tersebut agar relasi tidak terputus.
+6. Penempatan siswa divalidasi: kelas yang dipilih harus berasal dari Tahun Ajaran yang dipilih.
+7. Parameter embed=1 dipertahankan saat navigasi kelas agar tetap berjalan di iframe dashboard.
+8. Nama Kelas tetap dipertahankan sebagai identitas kelas (contoh: RPL 1); Tahun Ajaran menjadi pilihan relasi tersendiri dari menu Kelola Tahun Ajaran.
+
+DATABASE:
+- Struktur dump db_ukk_2026 (3).sql sudah memiliki kolom t_kelas.tahun_ajaran_id dan relasi foreign key ke t_tahun_ajaran.
+- Jika database lokal sudah menggunakan struktur tersebut, tidak perlu mengimpor migrasi lagi.
+- Jika database lama belum memiliki kolom tahun_ajaran_id, jalankan MIGRASI_TAHUN_AJARAN_KELAS.sql satu kali melalui phpMyAdmin.
+- Periksa dengan: DESCRIBE t_kelas;
+
+PENGUJIAN:
+- Semua file PHP pada project telah diperiksa menggunakan php -l dan tidak ditemukan kesalahan sintaks.
+- Koneksi dan operasi database secara langsung perlu diuji di XAMPP menggunakan database db_ukk_2026.
