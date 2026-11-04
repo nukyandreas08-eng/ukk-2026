@@ -9,7 +9,7 @@ $query = mysqli_query(
     $koneksi,
     "SELECT id, nis, nisn, nama, jenis_kelamin, tanggal_lahir, alamat, status_aktif
      FROM t_siswa
-     ORDER BY id DESC"
+     ORDER BY id ASC"
 );
 
 if (!$query) {
