@@ -13,23 +13,11 @@ $sql = "SELECT
             t_users.email AS email_user
         FROM t_guru
         LEFT JOIN t_users ON t_guru.user_id = t_users.id
-        ORDER BY t_guru.id DESC";
-
+         ORDER BY t_guru.id ASC";
 $query = mysqli_query($koneksi, $sql);
 
 if (!$query) {
     die("Query data guru gagal: " . mysqli_error($koneksi));
-}
-
-$sql_user = "SELECT id, name, email
-             FROM t_users
-             WHERE role = 'guru'
-             ORDER BY name ASC";
-
-$query_user = mysqli_query($koneksi, $sql_user);
-
-if (!$query_user) {
-    die("Query akun guru gagal: " . mysqli_error($koneksi));
 }
 
 function e($value) {
@@ -84,8 +72,8 @@ function e($value) {
                         <td style="width:20%">NIP</td>
                         <td style="width:2%">:</td>
                         <td>
-                            <input type="text" name="nip"
-                                   class="form-control" required>
+                            <input type="text" name="nip" id="nip"
+                                   class="form-control" maxlength="10" inputmode="numeric" pattern="[0-9]{1,10}" title="NIP hanya boleh angka, maksimal 10 digit" oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,10)" required>
                         </td>
                     </tr>
 
@@ -108,19 +96,23 @@ function e($value) {
                     </tr>
 
                     <tr>
-                        <td>Akun Guru</td>
+                        <td>Password</td>
                         <td>:</td>
                         <td>
-                            <select name="user_id" class="form-select" required>
-                                <option value="">-- Pilih Akun Guru --</option>
+                            <input type="password" name="password"
+                                   class="form-control" minlength="8"
+                                   autocomplete="new-password" required>
+                            <small class="text-muted">Minimal 8 karakter.</small>
+                        </td>
+                    </tr>
 
-                                <?php while ($user = mysqli_fetch_assoc($query_user)): ?>
-                                    <option value="<?= (int)$user['id'] ?>">
-                                        <?= e($user['name']) ?>
-                                        - <?= e($user['email']) ?>
-                                    </option>
-                                <?php endwhile; ?>
-                            </select>
+                    <tr>
+                        <td>Konfirmasi Password</td>
+                        <td>:</td>
+                        <td>
+                            <input type="password" name="konfirmasi_password"
+                                   class="form-control" minlength="8"
+                                   autocomplete="new-password" required>
                         </td>
                     </tr>
 
@@ -164,7 +156,6 @@ function e($value) {
                     <th>Nama</th>
                     <th>Email</th>
                     <th>Status</th>
-                    <th>User ID</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -199,8 +190,6 @@ function e($value) {
                                 <?php endif; ?>
                             </td>
 
-                            <td><?= e($guru['user_id'] ?? '-') ?></td>
-
                             <td>
                                 <div class="d-flex gap-2">
                                     <a href="edit_guru.php?id=<?= (int)$guru['id'] ?>&amp;embed=1"
@@ -219,7 +208,7 @@ function e($value) {
                     <?php endwhile; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
+                        <td colspan="6" class="text-center text-muted py-4">
                             Belum ada data guru.
                         </td>
                     </tr>
@@ -272,7 +261,7 @@ function e($value) {
 
             columnDefs: [
                 {
-                    targets: 6,
+                    targets: 5,
                     orderable: false,
                     searchable: false
                 }

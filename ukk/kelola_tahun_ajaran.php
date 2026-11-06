@@ -6,7 +6,12 @@ $embed = isset($_GET['embed']) && $_GET['embed'] === '1';
 
 $query = mysqli_query($koneksi, "
     SELECT * FROM t_tahun_ajaran
-    ORDER BY id DESC
+    ORDER BY
+        CASE
+            WHEN nama = '2026/2027' THEN 0
+            ELSE 1
+        END ASC,
+        id ASC
 ");
 
 if (!$query) {
@@ -43,7 +48,6 @@ function e($value) {
     <h2 class="fw-bold mb-3">Kelola Tahun Ajaran</h2>
     <hr>
 
-    <!-- PESAN NOTIFIKASI -->
     <?php if (!empty($_SESSION['pesan'])): ?>
         <div class="alert alert-info alert-dismissible fade show" role="alert">
             <?= e($_SESSION['pesan']) ?>
@@ -59,7 +63,6 @@ function e($value) {
 
     <p>Halaman pengelolaan data tahun ajaran sekolah.</p>
 
-    <!-- TOMBOL NAVIGASI -->
     <div class="d-flex flex-wrap gap-2 mb-3">
 
         <a href="dashboard.php?embed=1"
@@ -75,7 +78,6 @@ function e($value) {
 
     </div>
 
-    <!-- TABEL DATA TAHUN AJARAN -->
     <div class="table-responsive">
         <table id="tabelTahunAjaran"
                class="table table-bordered table-hover align-middle w-100">
@@ -153,7 +155,6 @@ function e($value) {
 
 </div>
 
-<!-- JAVASCRIPT -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/2.3.4/js/dataTables.min.js"></script>
@@ -172,7 +173,6 @@ function e($value) {
             return;
         }
 
-        // Hindari inisialisasi ketika tabel hanya berisi pesan kosong.
         if (
             tabel.tBodies.length &&
             tabel.tBodies[0].rows.length === 1 &&
@@ -184,7 +184,10 @@ function e($value) {
         new DataTable(tabel, {
             pageLength: 10,
             lengthMenu: [5, 10, 25, 50, 100],
-            order: [],
+
+            // Pertahankan urutan dari database
+            ordering: false,
+
             scrollX: true,
 
             columnDefs: [
@@ -221,7 +224,6 @@ function e($value) {
     }
 })();
 
-// Kembali ke dashboard melalui iframe.
 function kembaliDashboard(event) {
     try {
         if (window.parent !== window) {
@@ -248,7 +250,6 @@ function kembaliDashboard(event) {
             }
         }
     } catch (error) {
-        // Gunakan tautan biasa jika iframe tidak dapat diakses.
     }
 
     return true;

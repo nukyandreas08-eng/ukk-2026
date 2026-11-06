@@ -46,8 +46,6 @@ function e($value) {
 <?php endif; ?>
 
 <div class="container-fluid p-3 p-md-4 bg-white">
-    <?php if (!empty($_SESSION['pesan_sukses'])): ?><div class="alert alert-success"><?= e($_SESSION['pesan_sukses']) ?></div><?php unset($_SESSION['pesan_sukses']); endif; ?>
-    <?php if (!empty($_SESSION['pesan_error'])): ?><div class="alert alert-danger"><?= e($_SESSION['pesan_error']) ?></div><?php unset($_SESSION['pesan_error']); endif; ?>
 
     <h2 class="fw-bold mb-3">Penempatan Siswa</h2>
     <hr>
@@ -96,14 +94,11 @@ function e($value) {
                         <td><?= e($row['nama_kelas'] ?? '-') ?></td>
                         <td><?= e($row['tahun_ajaran'] ?? '-') ?></td>
                         <td>
-                            <div class="d-flex flex-wrap gap-1">
-                                <a class="btn btn-sm btn-primary" href="edit_penempatan_siswa.php?id=<?= (int)$row['id'] ?><?= $embed ? '&embed=1' : '' ?>">Edit</a>
-                                <form method="post" action="hapus_penempatan_siswa.php" onsubmit="return confirm('Yakin ingin menghapus penempatan siswa ini?')">
-                                    <input type="hidden" name="id" value="<?= (int)$row['id'] ?>">
-                                    <input type="hidden" name="embed" value="<?= $embed ? '1' : '0' ?>">
-                                    <button class="btn btn-sm btn-danger" type="submit">Hapus</button>
-                                </form>
-                            </div>
+                            <a class="btn btn-sm btn-danger"
+                               href="hapus_penempatan_siswa.php?id=<?= (int) $row['id'] ?><?= $embed ? '&embed=1' : '' ?>"
+                               onclick="return confirm('Yakin ingin menghapus penempatan siswa ini?')">
+                                Hapus
+                            </a>
                         </td>
                     </tr>
                 <?php

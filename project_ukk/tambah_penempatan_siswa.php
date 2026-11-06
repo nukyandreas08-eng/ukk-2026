@@ -34,8 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = mysqli_prepare(
                 $koneksi,
                 "INSERT INTO t_kelas_siswa
-                 (siswa_id, kelas_id, tahun_ajaran_id, tanggal_mulai, tanggal_selesai, status_aktif)
-                 VALUES (?, ?, ?, CURDATE(), '2099-12-31', 1)"
+                 (siswa_id, kelas_id, tahun_ajaran_id)
+                 VALUES (?, ?, ?)"
             );
 
             mysqli_stmt_bind_param(

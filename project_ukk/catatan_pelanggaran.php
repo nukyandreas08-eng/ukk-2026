@@ -205,12 +205,11 @@ function e($value) {
                                     Edit
                                 </a>
 
-                                <form method="post" action="proses_pelanggaran.php" onsubmit="return confirm('Yakin ingin menghapus jenis pelanggaran ini?')">
-                                    <input type="hidden" name="aksi" value="hapus">
-                                    <input type="hidden" name="id" value="<?= (int)$pelanggaran['id'] ?>">
-                                    <input type="hidden" name="embed" value="<?= $embed ? '1' : '0' ?>">
-                                    <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
-                                </form>
+                                <a class="btn btn-sm btn-danger"
+                                   href="proses_pelanggaran.php?aksi=hapus&id=<?= (int) $pelanggaran['id'] ?><?= $embed ? '&embed=1' : '' ?>"
+                                   onclick="return confirm('Yakin ingin menghapus pelanggaran ini?')">
+                                    Hapus
+                                </a>
                             </div>
                         </td>
                     </tr>

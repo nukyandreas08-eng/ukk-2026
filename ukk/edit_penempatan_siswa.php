@@ -75,6 +75,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } else {
 
+        // Kelas harus terhubung dengan tahun ajaran yang dipilih.
+        $cekKelas = mysqli_prepare(
+            $koneksi,
+            'SELECT id FROM t_kelas WHERE id = ? AND tahun_ajaran_id = ?'
+        );
+        mysqli_stmt_bind_param($cekKelas, 'ii', $kelas_id, $tahun_id);
+        mysqli_stmt_execute($cekKelas);
+        $kelasSesuaiTahun = mysqli_num_rows(mysqli_stmt_get_result($cekKelas)) > 0;
+        mysqli_stmt_close($cekKelas);
+
+        if (!$kelasSesuaiTahun) {
+            $error = 'Kelas yang dipilih tidak terdaftar pada tahun ajaran tersebut. Periksa menu Kelola Kelas.';
+        }
+
+        if ($error === '') {
         // ========================================
         // 5. MEMERIKSA PENEMPATAN SISWA
         // ========================================
@@ -167,6 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Menutup statement
                 mysqli_stmt_close($up);
             }
+        }
         }
     }
 }

@@ -9,7 +9,7 @@ $query = mysqli_query(
     $koneksi,
     "SELECT id, nis, nisn, nama, jenis_kelamin, tanggal_lahir, alamat, status_aktif
      FROM t_siswa
-     ORDER BY id DESC"
+     ORDER BY id ASC"
 );
 
 if (!$query) {
@@ -68,14 +68,18 @@ function e($v) {
 
             <div class="col-12 col-md-6">
                 <label for="nis" class="form-label">NIS</label>
-                <input id="nis" name="nis" class="form-control"
-                       maxlength="30" required>
+                <input id="nis" name="nis" type="text" class="form-control"
+                       maxlength="10" inputmode="numeric" pattern="[0-9]{1,10}"
+                       title="NIS hanya boleh angka, maksimal 10 digit"
+                       oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,10)" required>
             </div>
 
             <div class="col-12 col-md-6">
                 <label for="nisn" class="form-label">NISN</label>
-                <input id="nisn" name="nisn" class="form-control"
-                       maxlength="30" required>
+                <input id="nisn" name="nisn" type="text" class="form-control"
+                       maxlength="10" inputmode="numeric" pattern="[0-9]{1,10}"
+                       title="NISN hanya boleh angka, maksimal 10 digit"
+                       oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,10)" required>
             </div>
 
             <div class="col-12 col-md-6">
@@ -152,7 +156,7 @@ function e($v) {
 
             <thead class="table-light">
                 <tr>
-                    <th>ID</th>
+                    <th>No</th>
                     <th>NIS</th>
                     <th>NISN</th>
                     <th>Nama</th>
@@ -166,9 +170,10 @@ function e($v) {
 
             <tbody>
                 <?php if (mysqli_num_rows($query) > 0): ?>
+                    <?php $no = 1; ?>
                     <?php while ($s = mysqli_fetch_assoc($query)): ?>
                         <tr>
-                            <td><?= (int)$s['id'] ?></td>
+                            <td><?= $no++ ?></td>
                             <td><?= e($s['nis']) ?></td>
                             <td><?= e($s['nisn']) ?></td>
                             <td><?= e($s['nama']) ?></td>
@@ -252,8 +257,27 @@ function e($v) {
         new DataTable(tabel, {
             pageLength: 10,
             lengthMenu: [5, 10, 25, 50, 100],
-            order: [[0, 'desc']],
+            order: [],
             scrollX: true,
+
+            // Kolom nomor bukan ID database dan tidak dapat diurutkan.
+            columnDefs: [
+                {
+                    targets: 0,
+                    orderable: false,
+                    searchable: false
+                }
+            ],
+
+            // Perbarui nomor setiap tabel diurutkan atau berpindah halaman.
+            drawCallback: function () {
+                var api = this.api();
+                var mulai = api.page.info().start;
+
+                api.column(0, { page: 'current' }).nodes().each(function (cell, index) {
+                    cell.innerHTML = mulai + index + 1;
+                });
+            },
 
             language: {
                 search: 'Cari:',

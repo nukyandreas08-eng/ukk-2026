@@ -1,167 +1,79 @@
 <?php
+
 session_start();
+
 include 'config/koneksi.php';
+
+
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Pelanggaran Siswa</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background-color: #249ccf;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: Arial, sans-serif;
-        }
-
-        .login-container {
-            width: 266px;
-            background-color: #f9f8f8;
-            padding: 20px;
-            border-radius: 25px;
-        }
-
-        .brand-title {
-            text-align: center;
-            color: #1f3b58;
-            font-size: 19px;
-            font-weight: 700;
-            line-height: 1.25;
-            margin: 8px 0 20px;
-        }
-
-        .brand-title span {
-            display: block;
-            color: #249ccf;
-            font-size: 17px;
-            font-weight: 600;
-        }
-
-        .form-label {
-            font-size: 12px;
-            margin: 0 0 1px 5px;
-            color: #111;
-        }
-
-        .form-control {
-            height: 40px;
-            border: none;
-            border-radius: 11px;
-            background-color: #e2e2e2;
-            font-size: 13px;
-            margin-bottom: 0;
-        }
-
-        .form-control:focus {
-            background-color: #e2e2e2;
-            box-shadow: 0 0 0 2px #0dcaf0;
-        }
-
-        .form-group {
-            margin-bottom: 0;
-        }
-
-        .btn-login {
-            width: 88%;
-            height: 32px;
-            display: block;
-            margin: 14px auto 5px;
-            border: none;
-            border-radius: 11px;
-            background-color: #08c9e9;
-            color: white;
-            font-family: Georgia, serif;
-            font-size: 18px;
-        }
-
-        .btn-login:hover {
-            background-color: #00b8d6;
-            color: white;
-        }
-
-        .pesan-error {
-            font-size: 12px;
-            text-align: center;
-            color: red;
-            margin-bottom: 8px;
-        }
-    </style>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body>
+      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <h1>Login Pelanggaran Siswa</h1>
 
-    <div class="login-container">
+    <?php
+    if (isset($_SESSION['pesan_error'])) {
+        echo "<p>" . $_SESSION['pesan_error'] . "</p>";
+        unset($_SESSION['pesan_error']);
+    }
+    ?>
 
-        <!-- Nama aplikasi sebagai pengganti logo -->
-        <div class="brand-title">
-            Sistem Informasi
-            <span>Pelanggaran Siswa</span>
-        </div>
+    <!-- <form action="proses_login.php" method="POST">
 
-        <!-- Pesan error -->
-        <?php if (isset($_SESSION['pesan_error'])) : ?>
-            <div class="pesan-error">
-                <?= htmlspecialchars($_SESSION['pesan_error']) ?>
-            </div>
-            <?php unset($_SESSION['pesan_error']); ?>
-        <?php endif; ?>
+        <table>
 
-        <!-- Form Login -->
-        <form action="proses_login.php" method="POST">
+            <tr>
+                <td>Email</td>
+                <td>:</td>
+                <td>
+                    <input type="email" name="email" required>
+                </td>
+            </tr>
 
-            <div class="form-group">
-                <label for="username" class="form-label">
-                    Username
-                </label>
+            <tr>
+                <td>Password</td>
+                <td>:</td>
+                <td>
+                    <input type="password" name="password" required>
+                </td>
+            </tr>
 
-                <input
-                    type="text"
-                    name="username"
-                    id="username"
-                    class="form-control"
-                    placeholder="Username atau email"
-                    required
-                    autocomplete="username">
-            </div>
+            <tr>
+                <td colspan="3">
+                    <input type="submit" name="login" value="Login">
+                </td>
+            </tr>
 
-            <div class="form-group">
-                <label for="password" class="form-label">
-                    Password
-                </label>
+        </table>
 
-                <input
-                    type="password"
-                    name="password"
-                    id="password"
-                    class="form-control"
-                    placeholder="Masukkan password"
-                    required
-                    autocomplete="current-password">
-            </div>
+    </form> -->
+ <form action="proses_login.php" method="POST">
 
-            <button type="submit" name="login" value="Login"
-                    class="btn btn-login">
-                Login
-            </button>
+  <div class="form-group">
+    <label for="exampleInputEmail1">Email address</label>
+    <input type="email" name="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+    <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputPassword1">Password</label>
+    <input type="password" name="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+  </div>
 
-        </form>
-
-    </div>
+  <button type="submit" name="login" value="Login"class="btn btn-primary">Login</button>
+</form>
 
 </body>
+
 </html>

@@ -106,6 +106,7 @@ CREATE TABLE `t_kelas` (
   `nama` varchar(100) DEFAULT NULL,
   `tingkat` varchar(20) NOT NULL,
   `jurusan` varchar(100) NOT NULL,
+  `tahun_ajaran_id` int(11) DEFAULT NULL,
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
@@ -913,7 +914,8 @@ ALTER TABLE `t_guru`
 -- Indeks untuk tabel `t_kelas`
 --
 ALTER TABLE `t_kelas`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_t_kelas_tahun_ajaran_id` (`tahun_ajaran_id`);
 
 --
 -- Indeks untuk tabel `t_kelas_siswa`
@@ -1051,6 +1053,11 @@ ALTER TABLE `t_guru`
   ADD CONSTRAINT `t_guru_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `t_users` (`id`) ON DELETE CASCADE;
 
 --
+-- Relasi kelas dengan tahun ajaran
+--
+ALTER TABLE `t_kelas`
+  ADD CONSTRAINT `t_kelas_ibfk_1` FOREIGN KEY (`tahun_ajaran_id`) REFERENCES `t_tahun_ajaran` (`id`) ON DELETE SET NULL;
+
 -- Ketidakleluasaan untuk tabel `t_kelas_siswa`
 --
 ALTER TABLE `t_kelas_siswa`

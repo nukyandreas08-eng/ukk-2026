@@ -33,6 +33,7 @@ function e($value) {
 <?php endif; ?>
 
 <div class="container-fluid p-3 p-md-4 bg-white">
+    <?php if (!empty($_SESSION['pesan'])): ?><div class="alert alert-info"><?= e($_SESSION['pesan']) ?></div><?php unset($_SESSION['pesan']); endif; ?>
 
     <h2 class="fw-bold mb-3">Kelola Kategori Pelanggaran</h2>
     <hr>
@@ -89,11 +90,11 @@ function e($value) {
                                     Edit
                                 </a>
 
-                                <a class="btn btn-sm btn-danger"
-                                   href="hapus_kategori_pelanggaran.php?id=<?= (int) $data['id'] ?><?= $embed ? '&embed=1' : '' ?>"
-                                   onclick="return confirm('Yakin ingin menghapus kategori ini?')">
-                                    Hapus
-                                </a>
+                                <form method="post" action="hapus_kategori_pelanggaran.php" onsubmit="return confirm('Yakin ingin menghapus kategori ini?')">
+                                    <input type="hidden" name="id" value="<?= (int)$data['id'] ?>">
+                                    <input type="hidden" name="embed" value="<?= $embed ? '1' : '0' ?>">
+                                    <button class="btn btn-sm btn-danger" type="submit">Hapus</button>
+                                </form>
                             </div>
                         </td>
                     </tr>

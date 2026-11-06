@@ -1,291 +1,99 @@
 <?php
-include 'includes/cek_session.php';
-include 'config/koneksi.php';
+require_once __DIR__ . '/includes/cek_session.php';
+require_once __DIR__ . '/config/koneksi.php';
 
-$embed = isset($_GET['embed']) && $_GET['embed'] === '1';
+$embed = (($_GET['embed'] ?? '') === '1');
 
-$query = mysqli_query($koneksi, "
-    SELECT * FROM t_kelas
-    ORDER BY id DESC
-");
-
-if (!$query) {
-    die("Gagal mengambil data kelas: " . mysqli_error($koneksi));
+// Cek skema sebelum menjalankan query agar database versi lama tidak menghasilkan fatal error.
+$cekKolom = mysqli_query($koneksi, "SHOW COLUMNS FROM t_kelas LIKE 'tahun_ajaran_id'");
+if (!$cekKolom || mysqli_num_rows($cekKolom) === 0) {
+    http_response_code(500);
+    echo '<div style="font-family:Arial,sans-serif;margin:24px;padding:20px;border:1px solid #f0c36d;background:#fff8e5;border-radius:8px">';
+    echo '<h3>Database perlu diperbarui</h3>';
+    echo '<p>Kolom <b>tahun_ajaran_id</b> belum tersedia pada tabel <b>t_kelas</b>.</p>';
+    echo '<p>Buka phpMyAdmin, pilih database <b>db_ukk_2026</b>, lalu jalankan file <b>PERBAIKAN_DATABASE_TAHUN_AJARAN_KELAS.sql</b> yang ada di dalam ZIP ini.</p>';
+    echo '</div>';
+    exit;
 }
+
+$sql = "SELECT k.id, k.nama, k.tingkat, k.jurusan, k.status_aktif,
+               k.tahun_ajaran_id, ta.nama AS tahun_ajaran
+        FROM t_kelas k
+        LEFT JOIN t_tahun_ajaran ta ON ta.id = k.tahun_ajaran_id
+        ORDER BY k.id DESC";
+$query = mysqli_query($koneksi, $sql);
+if (!$query) {
+    die('Gagal mengambil data kelas: ' . htmlspecialchars(mysqli_error($koneksi), ENT_QUOTES, 'UTF-8'));
+}
+function e_kelas($value) { return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'); }
 ?>
-
 <?php if (!$embed): ?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Kelola Kelas</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-
-    <link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.min.css"
-          rel="stylesheet">
-</head>
-<body>
+<!doctype html><html lang="id"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kelola Kelas</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+</head><body>
 <?php else: ?>
-<link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.min.css"
-      rel="stylesheet">
+<link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 <?php endif; ?>
-
 <div class="container-fluid p-3 p-md-4 bg-white">
-
-    <h1 class="fw-bold mb-2">Kelola Kelas</h1>
-    <hr>
-
-    <!-- PESAN NOTIFIKASI -->
-    <?php if (isset($_GET['pesan'])): ?>
-        <?php $pesan = $_GET['pesan']; ?>
-
-        <?php if ($pesan === 'edit_berhasil' || $pesan === 'hapus_berhasil'): ?>
-            <div class="alert alert-success alert-dismissible fade show">
-                Data kelas berhasil
-                <?= $pesan === 'edit_berhasil' ? 'diperbarui' : 'dihapus' ?>.
-                <button type="button" class="btn-close"
-                        data-bs-dismiss="alert" aria-label="Tutup"></button>
-            </div>
-
-        <?php elseif ($pesan === 'data_tidak_ditemukan'): ?>
-            <div class="alert alert-warning">
-                Data kelas tidak ditemukan.
-            </div>
-
-        <?php elseif ($pesan === 'hapus_gagal'): ?>
-            <div class="alert alert-danger">
-                Data kelas gagal dihapus. Periksa relasi database.
-            </div>
-
-        <?php elseif ($pesan === 'id_tidak_valid'): ?>
-            <div class="alert alert-warning">
-                ID kelas tidak valid.
-            </div>
-        <?php endif; ?>
+    <h2 class="fw-bold mb-3">Kelola Kelas</h2><hr>
+    <?php
+    $pesan = $_GET['pesan'] ?? '';
+    $notifikasi = [
+        'tambah_berhasil' => ['success', 'Data kelas berhasil ditambahkan.'],
+        'edit_berhasil' => ['success', 'Data kelas berhasil diperbarui.'],
+        'hapus_berhasil' => ['success', 'Data kelas berhasil dihapus.'],
+        'data_tidak_ditemukan' => ['warning', 'Data kelas tidak ditemukan.'],
+        'hapus_gagal' => ['danger', 'Data kelas gagal dihapus karena masih digunakan data lain.'],
+        'id_tidak_valid' => ['warning', 'ID kelas tidak valid.'],
+        'tahun_tidak_tersedia' => ['warning', 'Silakan tambahkan tahun ajaran terlebih dahulu melalui menu Kelola Tahun Ajaran.']
+    ];
+    if (isset($notifikasi[$pesan])):
+        [$jenis, $isi] = $notifikasi[$pesan]; ?>
+        <div class="alert alert-<?= $jenis ?>"><?= e_kelas($isi) ?></div>
     <?php endif; ?>
-
-    <p>Halaman untuk mengelola data kelas.</p>
-
-    <!-- TOMBOL NAVIGASI -->
+    <p>Data kelas terhubung langsung dengan Tahun Ajaran yang dibuat pada menu <strong>Kelola Tahun Ajaran</strong>.</p>
     <div class="d-flex flex-wrap gap-2 mb-3">
-
-        <a href="dashboard.php?embed=1"
-           class="btn btn-secondary"
-           onclick="return kembaliDashboard(event)">
-            Kembali ke Dashboard
-        </a>
-
-        <a href="tambah_kelas.php<?= $embed ? '?embed=1' : '' ?>"
-           class="btn btn-primary">
-            + Tambah Kelas
-        </a>
-
+        <a href="dashboard.php?embed=1" class="btn btn-secondary" onclick="return kembaliDashboard(event)">Kembali ke Dashboard</a>
+        <a href="tambah_kelas.php<?= $embed ? '?embed=1' : '' ?>" class="btn btn-primary">+ Tambah Kelas</a>
+        <a href="kelola_tahun_ajaran.php<?= $embed ? '?embed=1' : '' ?>" class="btn btn-outline-primary">Kelola Tahun Ajaran</a>
     </div>
-
-    <!-- TABEL DATA KELAS -->
     <div class="table-responsive">
-        <table id="tabelKelas"
-               class="table table-bordered table-hover align-middle w-100">
-
-            <thead class="table-light">
-                <tr>
-                    <th>No</th>
-                    <th>Nama Kelas</th>
-                    <th>Tingkat</th>
-                    <th>Jurusan</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-
+        <table id="tabelKelas" class="table table-bordered table-hover align-middle w-100">
+            <thead class="table-light"><tr>
+                <th>No</th><th>Nama Kelas</th><th>Tingkat</th><th>Jurusan</th><th>Tahun Ajaran</th><th>Status</th><th>Aksi</th>
+            </tr></thead>
             <tbody>
-                <?php
-                $no = 1;
-
-                if (mysqli_num_rows($query) > 0):
-                    while ($kelas = mysqli_fetch_assoc($query)):
-                ?>
-                    <tr>
-                        <td><?= $no++ ?></td>
-
-                        <td>
-                            <?= htmlspecialchars(
-                                (string)$kelas['nama'],
-                                ENT_QUOTES,
-                                'UTF-8'
-                            ) ?>
-                        </td>
-
-                        <td>
-                            <?= htmlspecialchars(
-                                (string)$kelas['tingkat'],
-                                ENT_QUOTES,
-                                'UTF-8'
-                            ) ?>
-                        </td>
-
-                        <td>
-                            <?= htmlspecialchars(
-                                (string)$kelas['jurusan'],
-                                ENT_QUOTES,
-                                'UTF-8'
-                            ) ?>
-                        </td>
-
-                        <td>
-                            <?php if ((int)$kelas['status_aktif'] === 1): ?>
-                                <span class="badge text-bg-success">
-                                    Aktif
-                                </span>
-                            <?php else: ?>
-                                <span class="badge text-bg-secondary">
-                                    Tidak Aktif
-                                </span>
-                            <?php endif; ?>
-                        </td>
-
-                        <td>
-                            <div class="d-flex gap-2">
-                                <a href="edit_kelas.php?id=<?= (int)$kelas['id'] ?><?= $embed ? '&embed=1' : '' ?>"
-                                   class="btn btn-primary btn-sm">
-                                    Edit
-                                </a>
-
-                                <a href="hapus_kelas.php?id=<?= (int)$kelas['id'] ?><?= $embed ? '&embed=1' : '' ?>"
-                                   class="btn btn-danger btn-sm"
-                                   onclick="return confirm('Yakin ingin menghapus kelas ini?')">
-                                    Hapus
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-
-                <?php
-                    endwhile;
-                else:
-                ?>
-                    <tr>
-                        <td colspan="6"
-                            class="text-center text-muted py-4">
-                            Belum ada data kelas.
-                        </td>
-                    </tr>
-                <?php endif; ?>
+            <?php $no=1; while ($row=mysqli_fetch_assoc($query)): ?>
+                <tr>
+                    <td><?= $no++ ?></td><td><?= e_kelas($row['nama']) ?></td>
+                    <td><?= e_kelas($row['tingkat']) ?></td><td><?= e_kelas($row['jurusan']) ?></td>
+                    <td><?= e_kelas($row['tahun_ajaran'] ?? 'Belum dipilih') ?></td>
+                    <td><?= (int)$row['status_aktif'] === 1 ? '<span class="badge text-bg-success">Aktif</span>' : '<span class="badge text-bg-secondary">Tidak Aktif</span>' ?></td>
+                    <td><div class="d-flex flex-wrap gap-1">
+                        <a class="btn btn-sm btn-primary" href="edit_kelas.php?id=<?= (int)$row['id'] ?><?= $embed ? '&embed=1' : '' ?>">Edit</a>
+                        <a class="btn btn-sm btn-danger" href="hapus_kelas.php?id=<?= (int)$row['id'] ?><?= $embed ? '&embed=1' : '' ?>" onclick="return confirm('Yakin ingin menghapus kelas ini?')">Hapus</a>
+                    </div></td>
+                </tr>
+            <?php endwhile; ?>
             </tbody>
-
         </table>
     </div>
-
 </div>
-
-<!-- JAVASCRIPT DATATABLES -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/2.3.4/js/dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/2.3.4/js/dataTables.bootstrap5.min.js"></script>
-
 <script>
-(function () {
-    function aktifkanDataTables() {
-        var tabel = document.getElementById('tabelKelas');
-
-        if (!tabel || typeof DataTable === 'undefined') {
-            return;
-        }
-
-        if (DataTable.isDataTable(tabel)) {
-            return;
-        }
-
-        // Hindari inisialisasi pada tabel yang hanya berisi
-        // pesan "Belum ada data kelas".
-        if (
-            tabel.tBodies.length &&
-            tabel.tBodies[0].rows.length === 1 &&
-            tabel.tBodies[0].rows[0].cells.length === 1
-        ) {
-            return;
-        }
-
-        new DataTable(tabel, {
-            pageLength: 10,
-            lengthMenu: [5, 10, 25, 50, 100],
-            order: [],
-            scrollX: true,
-
-            columnDefs: [
-                {
-                    targets: 5,
-                    orderable: false,
-                    searchable: false
-                }
-            ],
-
-            language: {
-                search: 'Cari:',
-                lengthMenu: 'Tampilkan _MENU_ data',
-                info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ data',
-                infoEmpty: 'Tidak ada data',
-                infoFiltered: '(difilter dari _MAX_ data)',
-                zeroRecords: 'Data tidak ditemukan',
-                emptyTable: 'Belum ada data kelas',
-
-                paginate: {
-                    first: 'Pertama',
-                    last: 'Terakhir',
-                    next: 'Berikutnya',
-                    previous: 'Sebelumnya'
-                }
-            }
-        });
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', aktifkanDataTables);
-    } else {
-        aktifkanDataTables();
-    }
+(function(){
+ const init=()=>{const t=document.getElementById('tabelKelas');if(t&&typeof DataTable!=='undefined'&&!DataTable.isDataTable(t)){new DataTable(t,{pageLength:10,lengthMenu:[5,10,25,50,100],order:[],scrollX:true,columnDefs:[{targets:6,orderable:false,searchable:false}],language:{search:'Cari:',lengthMenu:'Tampilkan _MENU_ data',info:'Menampilkan _START_ sampai _END_ dari _TOTAL_ data',infoEmpty:'Tidak ada data',infoFiltered:'(difilter dari _MAX_ data)',zeroRecords:'Data tidak ditemukan',emptyTable:'Belum ada data kelas',paginate:{first:'Pertama',last:'Terakhir',next:'Berikutnya',previous:'Sebelumnya'}}});}};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
-
-// Kembali ke dashboard tanpa membuka halaman di luar iframe.
-function kembaliDashboard(event) {
-    try {
-        if (window.parent !== window) {
-            var parentDoc = window.parent.document;
-            var frame = parentDoc.getElementById('contentFrame');
-
-            if (frame) {
-                parentDoc.querySelectorAll('.sidebar .nav-link')
-                    .forEach(function (link) {
-                        link.classList.remove('active');
-                    });
-
-                var dashboardLink = parentDoc.querySelector(
-                    '.sidebar .nav-link[href*="dashboard"]'
-                );
-
-                if (dashboardLink) {
-                    dashboardLink.classList.add('active');
-                }
-
-                frame.src = 'dashboard.php?embed=1';
-                event.preventDefault();
-                return false;
-            }
-        }
-    } catch (error) {
-        // Gunakan tautan biasa jika iframe tidak dapat diakses.
-    }
-
-    return true;
+function kembaliDashboard(event){
+ try{if(window.parent!==window){const d=window.parent.document,f=d.getElementById('contentFrame');if(f){d.querySelectorAll('.sidebar .nav-link').forEach(x=>x.classList.remove('active'));const a=d.querySelector('.sidebar .nav-link[href*="dashboard"]');if(a)a.classList.add('active');f.src='dashboard.php?embed=1';event.preventDefault();return false;}}}catch(e){}
+ return true;
 }
 </script>
-
-<?php if (!$embed): ?>
-</body>
-</html>
-<?php endif; ?>
+<?php if (!$embed): ?></body></html><?php endif; ?>

@@ -1,0 +1,18 @@
+FITUR BARU: PENCATATAN PELANGGARAN DAN TINDAKAN
+
+1. Ekstrak ZIP dan salin folder revisi ke htdocs seperti biasa.
+2. Pastikan database db_ukk_2026 sudah diimpor dan konfigurasi config/koneksi.php sesuai.
+3. Buka menu Catat Pelanggaran.
+4. Pilih siswa, pilih jenis pelanggaran aktif, tentukan tanggal, isi kronologi, lalu klik Simpan Pelanggaran.
+5. Poin akan terisi otomatis mengikuti poin pada master Jenis Pelanggaran.
+6. Buka menu Tindakan untuk mengisi atau memperbarui tindakan pembinaan dan status:
+   - Belum ditindaklanjuti
+   - Dalam proses
+   - Selesai
+7. Data tersimpan pada tabel t_pelanggaran_siswa sehingga ikut terbaca oleh Riwayat, Rekap Poin, dan Laporan yang memakai tabel tersebut.
+
+CATATAN:
+- Jenis pelanggaran yang ditampilkan harus berstatus Aktif.
+- Siswa yang ditampilkan harus berstatus Aktif.
+- Nama guru diambil dari relasi t_guru.user_id dengan akun yang sedang login. Jika akun belum terhubung ke data guru, sistem menyimpan nama akun login.
+- Tidak ada perubahan struktur database yang diperlukan; fitur menggunakan kolom yang sudah tersedia pada t_pelanggaran_siswa.
