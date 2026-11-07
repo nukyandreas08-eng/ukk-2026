@@ -13,8 +13,7 @@ $sql = "SELECT
             t_users.email AS email_user
         FROM t_guru
         LEFT JOIN t_users ON t_guru.user_id = t_users.id
-        ORDER BY t_guru.id DESC";
-
+         ORDER BY t_guru.id ASC";
 $query = mysqli_query($koneksi, $sql);
 
 if (!$query) {
