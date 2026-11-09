@@ -181,7 +181,7 @@ if (!$embed):
                 name="nis"
                 maxlength="15"
                 inputmode="numeric"
-                pattern="[0-9]{1,10}"
+                pattern="[0-9]{1,15}"
                 title="NIS hanya boleh angka, maksimal 15 digit"
                 oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,15)"
                 value="<?= e($siswa['nis']) ?>"

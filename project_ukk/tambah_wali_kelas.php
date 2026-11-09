@@ -105,7 +105,11 @@ $query_kelas = mysqli_query(
     $koneksi,
     "SELECT k.id, k.nama, k.tingkat, k.jurusan
      FROM t_kelas k
-     WHERE NOT EXISTS (SELECT 1 FROM t_wali_kelas wk WHERE wk.kelas_id = k.id AND wk.tahun_ajaran_id = (SELECT id FROM t_tahun_ajaran WHERE status_aktif = 1 LIMIT 1))
+     INNER JOIN t_tahun_ajaran ta ON ta.id = k.tahun_ajaran_id AND ta.status_aktif = 1
+     WHERE NOT EXISTS (
+         SELECT 1 FROM t_wali_kelas wk
+         WHERE wk.kelas_id = k.id AND wk.tahun_ajaran_id = ta.id
+     )
      ORDER BY k.tingkat, k.jurusan, k.nama"
 );
 
