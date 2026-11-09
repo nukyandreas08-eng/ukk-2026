@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/cek_akses_guru.php'; include 'config/koneksi.php';
+include 'includes/cek_session.php'; include 'config/koneksi.php';
 $embed=(($_GET['embed']??'')==='1');
 $sql="SELECT id,tanggal,nama_siswa,nama_kelas,nama_pelanggaran,poin,keterangan,tindakan,status,nama_guru FROM t_pelanggaran_siswa ORDER BY tanggal DESC,id DESC";
 $q=mysqli_query($koneksi,$sql);if(!$q){die('Gagal mengambil riwayat: '.htmlspecialchars(mysqli_error($koneksi)));}

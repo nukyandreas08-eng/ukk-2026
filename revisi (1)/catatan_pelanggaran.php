@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/cek_akses_guru.php'; include 'config/koneksi.php';
+include 'includes/cek_session.php'; include 'config/koneksi.php';
 $embed=(($_GET['embed']??'')==='1'); function eCat($v){return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');}
 $qSiswa=mysqli_query($koneksi,"SELECT s.id,s.nis,s.nama,COALESCE(k.nama,'Belum ditempatkan') nama_kelas FROM t_siswa s LEFT JOIN t_kelas_siswa ks ON ks.siswa_id=s.id AND ks.status_aktif=1 LEFT JOIN t_kelas k ON k.id=ks.kelas_id WHERE s.status_aktif=1 ORDER BY s.nama");
 $qPelanggaran=mysqli_query($koneksi,"SELECT id,kode,nama,poin FROM t_pelanggaran WHERE status_aktif=1 ORDER BY nama");

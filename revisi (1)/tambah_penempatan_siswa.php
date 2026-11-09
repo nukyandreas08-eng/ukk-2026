@@ -80,8 +80,10 @@ $query_siswa = mysqli_query(
 
 $query_kelas = mysqli_query(
     $koneksi,
-    "SELECT id, nama, tingkat, jurusan
-     FROM t_kelas ORDER BY tingkat, jurusan, nama"
+    "SELECT k.id, k.nama, k.tingkat, k.jurusan
+     FROM t_kelas k
+     INNER JOIN t_tahun_ajaran ta ON ta.id = k.tahun_ajaran_id AND ta.status_aktif = 1
+     ORDER BY k.tingkat, k.jurusan, k.nama"
 );
 
 $query_tahun = mysqli_query(

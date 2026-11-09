@@ -161,6 +161,9 @@ $menuAdmin = [
     ['Penempatan Siswa', 'kelola_penempatan_siswa.php?embed=1', 'bi-diagram-3'],
     ['Kategori Pelanggaran', 'kelola_kategori_pelanggaran.php?embed=1', 'bi-tags'],
     ['Jenis Pelanggaran', 'kelola_jenis_pelanggaran.php?embed=1', 'bi-list-check'],
+    ['Catat Pelanggaran', 'catatan_pelanggaran.php?embed=1', 'bi-journal-plus'],
+    ['Tindakan', 'tindakan.php?embed=1', 'bi-clipboard-check'],
+    ['Riwayat Pelanggaran', 'riwayat.php?embed=1', 'bi-clock-history'],
     ['Rekap Poin', 'rekap_point.php?embed=1', 'bi-bar-chart'],
     ['Laporan', 'laporan.php?embed=1', 'bi-file-earmark-text'],
     ['Cetak / Export', 'laporan.php?embed=1&cetak=1', 'bi-printer'],
@@ -187,6 +190,7 @@ $menuGuru = [
 // ========================================
 $menuWali = [
     ['Dashboard', 'dashboard.php?embed=1', 'bi-speedometer2'],
+    ['Riwayat Pelanggaran', 'riwayat.php?embed=1', 'bi-clock-history'],
     ['Rekap Poin', 'rekap_point.php?embed=1', 'bi-bar-chart'],
     ['Laporan', 'laporan.php?embed=1', 'bi-file-earmark-text'],
     ['About Me', 'about_me.php?embed=1', 'bi-person-circle']

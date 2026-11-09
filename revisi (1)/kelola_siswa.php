@@ -61,126 +61,86 @@ function e($v) {
 
     <h5 class="fw-bold mb-3">Tambah Data Siswa</h5>
 
-    <form
-        action="proses_siswa.php"
-        method="post"
-        class="row g-3 mb-4"
-    >
+    <form action="proses_siswa.php" method="post" class="row g-3 mb-4">
         <input type="hidden" name="aksi" value="tambah">
 
-        <div class="col-12 col-md-6">
-            <label class="form-label" for="nis">NIS</label>
-            <input
-                id="nis"
-                class="form-control"
-                name="nis"
-                maxlength="15"
-                inputmode="numeric"
-                pattern="[0-9]{1,15}"
-                title="NIS hanya boleh angka, maksimal 15 digit"
-                oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,15)"
-                required
-            >
-        </div>
+        <div class="col-md-6">
+                <label for="nis" class="form-label">NIS</label>
+                <input id="nis" name="nis" type="text" class="form-control"
+                       maxlength="15" inputmode="numeric" pattern="[0-9]{1,15}"
+                       title="NIS hanya boleh angka, maksimal 15 digit"
+                       oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,15)" required>
+            </div>
 
-        <div class="col-12 col-md-6">
-            <label class="form-label" for="nisn">NISN</label>
-            <input
-                id="nisn"
-                class="form-control"
-                name="nisn"
-                maxlength="10"
-                inputmode="numeric"
-                pattern="[0-9]{1,10}"
-                title="NISN hanya boleh angka, maksimal 10 digit"
-                oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,10)"
-                required
-            >
-        </div>
+            <div class="col-md-6">
+                <label for="nisn" class="form-label">NISN</label>
+                <input id="nisn" name="nisn" type="text" class="form-control"
+                       maxlength="10" inputmode="numeric" pattern="[0-9]{1,10}"
+                       title="NISN hanya boleh angka, maksimal 10 digit"
+                       oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,10)" required>
+            </div>
 
-        <div class="col-12 col-md-6">
-            <label class="form-label" for="nama">Nama Siswa</label>
-            <input
-                id="nama"
-                class="form-control"
-                name="nama"
-                maxlength="150"
-                required
-            >
-        </div>
+            <div class="col-md-6">
+                <label for="nama" class="form-label">Nama Siswa</label>
+                <input id="nama" name="nama" class="form-control"
+                       maxlength="150" required>
+            </div>
 
-        <div class="col-12 col-md-6">
-            <label class="form-label" for="jenis_kelamin">Jenis Kelamin</label>
-            <select
-                id="jenis_kelamin"
-                name="jenis_kelamin"
-                class="form-select"
-                required
-            >
-                <option value="">-- Pilih Jenis Kelamin --</option>
-                <option value="L">Laki-laki</option>
-                <option value="P">Perempuan</option>
-            </select>
-        </div>
+            <div class="col-md-6">
+                <label for="jenis_kelamin" class="form-label">Jenis Kelamin</label>
+                <select id="jenis_kelamin" name="jenis_kelamin"
+                        class="form-select" required>
+                    <option value="">-- Pilih Jenis Kelamin --</option>
+                    <option value="L">Laki-laki</option>
+                    <option value="P">Perempuan</option>
+                </select>
+            </div>
 
-        <div class="col-12 col-md-6">
-            <label class="form-label" for="tanggal_lahir">Tanggal Lahir</label>
-            <input
-                id="tanggal_lahir"
-                type="date"
-                class="form-control"
-                name="tanggal_lahir"
-                required
-            >
-        </div>
+            <div class="col-md-6">
+                <label for="tanggal_lahir" class="form-label">Tanggal Lahir</label>
+                <input id="tanggal_lahir" type="date"
+                       name="tanggal_lahir" class="form-control" required>
+            </div>
 
-        <div class="col-12 col-md-6">
-            <label class="form-label" for="status_aktif">Status Aktif</label>
-            <select
-                id="status_aktif"
-                name="status_aktif"
-                class="form-select"
-                required
-            >
-                <option value="1" selected>Aktif</option>
-                <option value="0">Tidak Aktif</option>
-            </select>
-        </div>
+            <div class="col-md-6">
+                <label for="status_aktif" class="form-label">Status Aktif</label>
+                <select id="status_aktif" name="status_aktif"
+                        class="form-select" required>
+                    <option value="1">Aktif</option>
+                    <option value="0">Tidak Aktif</option>
+                </select>
+            </div>
 
-        <div class="col-12">
-            <label class="form-label" for="alamat">Alamat</label>
-            <textarea
-                id="alamat"
-                name="alamat"
-                class="form-control"
-                rows="2"
-                required
-            ></textarea>
-        </div>
+            <div class="col-12">
+                <label for="alamat" class="form-label">Alamat</label>
+                <textarea id="alamat" name="alamat"
+                          class="form-control" rows="2"
+                          maxlength="1000" required></textarea>
+            </div>
 
-        <div class="col-12">
-            <button class="btn btn-primary" type="submit">
-                + Tambah Siswa
-            </button>
+            <div class="col-12">
+                <button class="btn btn-primary" type="submit">
+                    + Tambah Siswa
+                </button>
 
-            <a
-                class="btn btn-secondary"
-                href="dashboard.php?embed=1"
-                onclick="if(window.parent!==window){try{
-                    var f=window.parent.document.getElementById('contentFrame');
-                    if(f){
-                        window.parent.document.querySelectorAll('.sidebar .nav-link').forEach(function(a){
-                            a.classList.remove('active');
-                        });
-                        var d=window.parent.document.querySelector('.sidebar .nav-link[href*=\\'dashboard\\']');
-                        if(d)d.classList.add('active');
-                        f.src='dashboard.php?embed=1';
-                        return false;
-                    }
-                }catch(e){}}"
-            >
-                Kembali ke Dashboard
-            </a>
+                <a class="btn btn-secondary"
+                   href="dashboard.php?embed=1"
+                   onclick="if(window.parent!==window){try{
+                       var f=window.parent.document.getElementById('contentFrame');
+                       if(f){
+                           window.parent.document.querySelectorAll('.sidebar .nav-link').forEach(function(a){
+                               a.classList.remove('active');
+                           });
+                           var d=window.parent.document.querySelector('.sidebar .nav-link[href*=\'dashboard\']');
+                           if(d)d.classList.add('active');
+                           f.src='dashboard.php?embed=1';
+                           return false;
+                       }
+                   }catch(e){}}">
+                    Kembali ke Dashboard
+                </a>
+            </div>
+
         </div>
     </form>
 
