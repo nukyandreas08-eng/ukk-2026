@@ -61,20 +61,18 @@ function e($v) {
 
     <h5 class="fw-bold mb-3">Tambah Data Siswa</h5>
 
-    <form action="proses_siswa.php" method="post" class="mb-4">
+    <form action="proses_siswa.php" method="post" class="row g-3 mb-4">
         <input type="hidden" name="aksi" value="tambah">
 
-        <div class="row g-3">
-
-            <div class="col-12 col-md-6">
+        <div class="col-md-6">
                 <label for="nis" class="form-label">NIS</label>
                 <input id="nis" name="nis" type="text" class="form-control"
-                       maxlength="10" inputmode="numeric" pattern="[0-9]{1,10}"
-                       title="NIS hanya boleh angka, maksimal 10 digit"
-                       oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,10)" required>
+                       maxlength="15" inputmode="numeric" pattern="[0-9]{1,15}"
+                       title="NIS hanya boleh angka, maksimal 15 digit"
+                       oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,15)" required>
             </div>
 
-            <div class="col-12 col-md-6">
+            <div class="col-md-6">
                 <label for="nisn" class="form-label">NISN</label>
                 <input id="nisn" name="nisn" type="text" class="form-control"
                        maxlength="10" inputmode="numeric" pattern="[0-9]{1,10}"
@@ -82,13 +80,13 @@ function e($v) {
                        oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,10)" required>
             </div>
 
-            <div class="col-12 col-md-6">
+            <div class="col-md-6">
                 <label for="nama" class="form-label">Nama Siswa</label>
                 <input id="nama" name="nama" class="form-control"
                        maxlength="150" required>
             </div>
 
-            <div class="col-12 col-md-6">
+            <div class="col-md-6">
                 <label for="jenis_kelamin" class="form-label">Jenis Kelamin</label>
                 <select id="jenis_kelamin" name="jenis_kelamin"
                         class="form-select" required>
@@ -98,13 +96,13 @@ function e($v) {
                 </select>
             </div>
 
-            <div class="col-12 col-md-6">
+            <div class="col-md-6">
                 <label for="tanggal_lahir" class="form-label">Tanggal Lahir</label>
                 <input id="tanggal_lahir" type="date"
                        name="tanggal_lahir" class="form-control" required>
             </div>
 
-            <div class="col-12 col-md-6">
+            <div class="col-md-6">
                 <label for="status_aktif" class="form-label">Status Aktif</label>
                 <select id="status_aktif" name="status_aktif"
                         class="form-select" required>

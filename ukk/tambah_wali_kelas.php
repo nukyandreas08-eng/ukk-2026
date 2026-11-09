@@ -11,6 +11,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tanggal_mulai = $_POST['tanggal_mulai'] ?? '';
     $tanggal_selesai = $_POST['tanggal_selesai'] ?? '';
     $status_aktif = (int) ($_POST['status_aktif'] ?? 1);
+    $cekTahunAktif = mysqli_prepare($koneksi, 'SELECT id FROM t_tahun_ajaran WHERE id = ? AND status_aktif = 1');
+    mysqli_stmt_bind_param($cekTahunAktif, 'i', $tahun_ajaran_id); mysqli_stmt_execute($cekTahunAktif);
+    $tahunAktifValid = mysqli_num_rows(mysqli_stmt_get_result($cekTahunAktif)) > 0; mysqli_stmt_close($cekTahunAktif);
+    if (!$tahunAktifValid) $error = 'Pilih tahun ajaran yang berstatus aktif.';
 
     if (
         $tahun_ajaran_id <= 0 ||
@@ -20,6 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tanggal_selesai === ''
     ) {
         $error = 'Semua kolom wajib diisi.';
+    } elseif ($error !== '') {
+        // Tahun ajaran yang dipilih bukan tahun aktif.
     } elseif ($tanggal_mulai > $tanggal_selesai) {
         $error = 'Tanggal mulai tidak boleh melewati tanggal selesai.';
     } else {
@@ -41,6 +47,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (mysqli_num_rows($hasil_cek) > 0) {
             $error = 'Kelas tersebut sudah memiliki data wali kelas pada tahun ajaran yang dipilih.';
         } else {
+            // Satu guru hanya boleh menjadi wali kelas untuk satu kelas.
+            $cekGuru = mysqli_prepare($koneksi, 'SELECT id FROM t_wali_kelas WHERE guru_id = ?');
+            mysqli_stmt_bind_param($cekGuru, 'i', $guru_id);
+            mysqli_stmt_execute($cekGuru);
+            $guruSudahWali = mysqli_num_rows(mysqli_stmt_get_result($cekGuru)) > 0;
+            mysqli_stmt_close($cekGuru);
+            if ($guruSudahWali) {
+                $error = 'Guru tersebut sudah menjadi wali kelas.';
+            }
+        }
+
+        if ($error === '') {
             $stmt = mysqli_prepare(
                 $koneksi,
                 "INSERT INTO t_wali_kelas
@@ -80,19 +98,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Ambil data pilihan dari database.
 $query_tahun = mysqli_query(
     $koneksi,
-    "SELECT id, nama FROM t_tahun_ajaran ORDER BY id DESC"
+    "SELECT id, nama FROM t_tahun_ajaran WHERE status_aktif = 1 ORDER BY id DESC"
 );
 
 $query_kelas = mysqli_query(
     $koneksi,
-    "SELECT id, nama, tingkat, jurusan
-     FROM t_kelas
-     ORDER BY tingkat, jurusan, nama"
+    "SELECT k.id, k.nama, k.tingkat, k.jurusan
+     FROM t_kelas k
+     INNER JOIN t_tahun_ajaran ta ON ta.id = k.tahun_ajaran_id AND ta.status_aktif = 1
+     WHERE NOT EXISTS (
+         SELECT 1 FROM t_wali_kelas wk
+         WHERE wk.kelas_id = k.id AND wk.tahun_ajaran_id = ta.id
+     )
+     ORDER BY k.tingkat, k.jurusan, k.nama"
 );
 
 $query_guru = mysqli_query(
     $koneksi,
-    "SELECT id, nama FROM t_guru ORDER BY nama ASC"
+    "SELECT g.id, g.nama FROM t_guru g WHERE NOT EXISTS (SELECT 1 FROM t_wali_kelas wk WHERE wk.guru_id = g.id) ORDER BY g.nama ASC"
 );
 
 if (!$query_tahun || !$query_kelas || !$query_guru) {

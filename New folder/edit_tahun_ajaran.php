@@ -8,7 +8,6 @@ function e($v){return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');}
 if($_SERVER['REQUEST_METHOD']==='POST'){
  $nama=trim($_POST['nama']??'');$mulai=$_POST['tanggal_mulai']??'';$selesai=$_POST['tanggal_selesai']??'';$status=filter_var($_POST['status_aktif']??null,FILTER_VALIDATE_INT);
  if($nama===''||$mulai===''||$selesai===''||$mulai>$selesai||!in_array($status,[0,1],true)){$_SESSION['pesan']='Data belum lengkap atau tanggal tidak valid.';header('Location: edit_tahun_ajaran.php?id='.$id);exit;}
- if($status===1){$cekAktif=mysqli_prepare($koneksi,'SELECT COUNT(*) AS total FROM t_tahun_ajaran WHERE status_aktif=1 AND id<>?');mysqli_stmt_bind_param($cekAktif,'i',$id);mysqli_stmt_execute($cekAktif);$jumlahAktif=(int)mysqli_fetch_assoc(mysqli_stmt_get_result($cekAktif))['total'];mysqli_stmt_close($cekAktif);if($jumlahAktif>0){$_SESSION['pesan']='Tidak dapat mengaktifkan tahun ajaran ini karena tahun ajaran lain masih aktif. Nonaktifkan terlebih dahulu.';header('Location: edit_tahun_ajaran.php?id='.$id);exit;}}
  $q=mysqli_prepare($koneksi,'UPDATE t_tahun_ajaran SET nama=?,tanggal_mulai=?,tanggal_selesai=?,status_aktif=? WHERE id=?');mysqli_stmt_bind_param($q,'sssii',$nama,$mulai,$selesai,$status,$id);
  if(mysqli_stmt_execute($q)){$_SESSION['pesan']='Data tahun ajaran berhasil diperbarui.';header('Location: kelola_tahun_ajaran.php');exit;} $error='Gagal memperbarui data: '.mysqli_stmt_error($q);
 }

@@ -18,10 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Semua kolom wajib diisi.';
     } elseif ($tanggal_mulai > $tanggal_selesai) {
         $error = 'Tanggal mulai tidak boleh melewati tanggal selesai.';
-    } elseif (!in_array($status_aktif, [0, 1], true)) {
-        $error = 'Status tahun ajaran tidak valid.';
-    } elseif ($status_aktif === 1 && (int)mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) AS total FROM t_tahun_ajaran WHERE status_aktif = 1"))['total'] > 0) {
-        $error = 'Tidak dapat mengaktifkan tahun ajaran baru karena masih ada tahun ajaran lain yang aktif. Nonaktifkan terlebih dahulu.';
     } else {
         $stmt = mysqli_prepare(
             $koneksi,

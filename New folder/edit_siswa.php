@@ -179,11 +179,11 @@ if (!$embed):
                 id="nis"
                 class="form-control"
                 name="nis"
-                maxlength="15"
+                maxlength="10"
                 inputmode="numeric"
-                pattern="[0-9]{1,15}"
-                title="NIS hanya boleh angka, maksimal 15 digit"
-                oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,15)"
+                pattern="[0-9]{1,10}"
+                title="NIS hanya boleh angka, maksimal 10 digit"
+                oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,10)"
                 value="<?= e($siswa['nis']) ?>"
                 required
             >
