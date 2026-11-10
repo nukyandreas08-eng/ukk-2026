@@ -1,9 +1,10 @@
 <?php
-// Memeriksa sesi login
+// Memeriksa sesi login dan hak akses
 include 'includes/cek_session.php';
 
 // Mengambil informasi pengguna
-$role = strtolower(trim($_SESSION['role'] ?? ''));
+$role = hak_role_efektif();
+$roleLabel = hak_label_role($role);
 $namaPengguna = $_SESSION['name'] ?? 'Pengguna';
 
 
@@ -40,16 +41,77 @@ function jumlahDataDashboard($koneksi, $tabel)
 
 
 // ========================================
+// STATISTIK SESUAI HAK AKSES
+// ========================================
+function statistikDashboard($koneksi, string $role): array
+{
+    $statistik = [];
+
+    if ($role === HAK_ADMIN) {
+        // Statistik sesuai menu admin: siswa, guru, kelas, dan
+        // jenis pelanggaran.
+        $statistik = [
+            ['Data Siswa', jumlahDataDashboard($koneksi, 't_siswa'), 'primary'],
+            ['Data Guru', jumlahDataDashboard($koneksi, 't_guru'), 'success'],
+            ['Data Kelas', jumlahDataDashboard($koneksi, 't_kelas'), 'warning'],
+            ['Jenis Pelanggaran', jumlahDataDashboard($koneksi, 't_pelanggaran'), 'danger'],
+        ];
+
+        return $statistik;
+    }
+
+    // Guru dan wali kelas: fokus pada catatan pelanggaran siswa.
+    $totalCatatan = 0;
+    $totalPoin = 0;
+    $siswaBermasalah = 0;
+    $totalSiswa = 0;
+
+    $query = mysqli_query(
+        $koneksi,
+        "SELECT COUNT(*) AS total_catatan,
+                COALESCE(SUM(poin), 0) AS total_poin,
+                COUNT(DISTINCT siswa_id) AS siswa_bermasalah
+         FROM t_pelanggaran_siswa"
+    );
+
+    if ($query) {
+        $data = mysqli_fetch_assoc($query);
+
+        $totalCatatan = (int) ($data['total_catatan'] ?? 0);
+        $totalPoin = (int) ($data['total_poin'] ?? 0);
+        $siswaBermasalah = (int) ($data['siswa_bermasalah'] ?? 0);
+    }
+
+    $querySiswa = mysqli_query(
+        $koneksi,
+        "SELECT COUNT(*) AS total FROM t_siswa WHERE status_aktif = 1"
+    );
+
+    if ($querySiswa) {
+        $data = mysqli_fetch_assoc($querySiswa);
+
+        $totalSiswa = (int) ($data['total'] ?? 0);
+    }
+
+    $statistik = [
+        ['Catatan Pelanggaran', $totalCatatan, 'danger'],
+        ['Total Poin', $totalPoin, 'primary'],
+        ['Siswa Bermasalah', $siswaBermasalah, 'warning'],
+        ['Siswa Aktif', $totalSiswa, 'success'],
+    ];
+
+    return $statistik;
+}
+
+
+// ========================================
 // HALAMAN DASHBOARD EMBED
 // ========================================
 if (isset($_GET['embed']) && $_GET['embed'] === '1') {
 
     include 'config/koneksi.php';
 
-    $siswa = jumlahDataDashboard($koneksi, 't_siswa');
-    $guru = jumlahDataDashboard($koneksi, 't_guru');
-    $kelas = jumlahDataDashboard($koneksi, 't_kelas');
-    $pelanggaran = jumlahDataDashboard($koneksi, 't_pelanggaran');
+    $statistik = statistikDashboard($koneksi, $role);
     ?>
 
     <!doctype html>
@@ -69,6 +131,18 @@ if (isset($_GET['embed']) && $_GET['embed'] === '1') {
     <body class="bg-light">
         <main class="container-fluid p-0">
 
+            <?php if (!empty($_SESSION['pesan_akses'])): ?>
+                <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                    <?= htmlspecialchars($_SESSION['pesan_akses'], ENT_QUOTES, 'UTF-8') ?>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Tutup"></button>
+                </div>
+                <?php unset($_SESSION['pesan_akses']); ?>
+            <?php endif; ?>
+
             <div class="mb-4">
                 <h2 class="fw-bold">Dashboard</h2>
 
@@ -77,53 +151,29 @@ if (isset($_GET['embed']) && $_GET['embed'] === '1') {
                     <?= htmlspecialchars($namaPengguna, ENT_QUOTES, 'UTF-8') ?>.
                     Berikut ringkasan Sistem Informasi Pelanggaran Siswa.
                 </p>
+
+                <p class="text-secondary mb-0">
+                    Hak akses:
+                    <span class="badge text-bg-secondary">
+                        <?= htmlspecialchars($roleLabel, ENT_QUOTES, 'UTF-8') ?>
+                    </span>
+                </p>
             </div>
 
             <div class="row g-3">
 
-                <div class="col-6 col-xl-3">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body">
-                            <div class="text-secondary">Data Siswa</div>
-                            <div class="display-6 fw-semibold text-primary">
-                                <?= $siswa ?>
+                <?php foreach ($statistik as $item): ?>
+                    <div class="col-6 col-xl-3">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="text-secondary"><?= htmlspecialchars($item[0], ENT_QUOTES, 'UTF-8') ?></div>
+                                <div class="display-6 fw-semibold text-<?= htmlspecialchars($item[2], ENT_QUOTES, 'UTF-8') ?>">
+                                    <?= (int) $item[1] ?>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="col-6 col-xl-3">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body">
-                            <div class="text-secondary">Data Guru</div>
-                            <div class="display-6 fw-semibold text-success">
-                                <?= $guru ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-6 col-xl-3">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body">
-                            <div class="text-secondary">Data Kelas</div>
-                            <div class="display-6 fw-semibold text-warning">
-                                <?= $kelas ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-6 col-xl-3">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body">
-                            <div class="text-secondary">Catatan Pelanggaran</div>
-                            <div class="display-6 fw-semibold text-danger">
-                                <?= $pelanggaran ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <?php endforeach; ?>
 
             </div>
 
@@ -149,76 +199,11 @@ if (isset($_GET['embed']) && $_GET['embed'] === '1') {
 
 
 // ========================================
-// MENU ADMIN
+// MENU SIDEBAR BERDASARKAN HAK AKSES
 // ========================================
-$menuAdmin = [
-    ['Dashboard', 'dashboard.php?embed=1', 'bi-speedometer2'],
-    ['Kelola Siswa', 'kelola_siswa.php?embed=1', 'bi-people'],
-    ['Kelola Guru', 'kelola_guru.php?embed=1', 'bi-person-badge'],
-    ['Kelola Kelas', 'kelola_kelas.php?embed=1', 'bi-building'],
-    ['Tahun Ajaran', 'kelola_tahun_ajaran.php?embed=1', 'bi-calendar3'],
-    ['Wali Kelas', 'kelola_wali_kelas.php?embed=1', 'bi-person-workspace'],
-    ['Penempatan Siswa', 'kelola_penempatan_siswa.php?embed=1', 'bi-diagram-3'],
-    ['Kategori Pelanggaran', 'kelola_kategori_pelanggaran.php?embed=1', 'bi-tags'],
-    ['Jenis Pelanggaran', 'kelola_jenis_pelanggaran.php?embed=1', 'bi-list-check'],
-    ['Catat Pelanggaran', 'catatan_pelanggaran.php?embed=1', 'bi-journal-plus'],
-    ['Tindakan', 'tindakan.php?embed=1', 'bi-clipboard-check'],
-    ['Riwayat Pelanggaran', 'riwayat.php?embed=1', 'bi-clock-history'],
-    ['Rekap Poin', 'rekap_point.php?embed=1', 'bi-bar-chart'],
-    ['Laporan', 'laporan.php?embed=1', 'bi-file-earmark-text'],
-    ['Cetak / Export', 'laporan.php?embed=1&cetak=1', 'bi-printer'],
-    ['About Me', 'about_me.php?embed=1', 'bi-person-circle']
-];
-
-
-// ========================================
-// MENU GURU
-// ========================================
-$menuGuru = [
-    ['Dashboard', 'dashboard.php?embed=1', 'bi-speedometer2'],
-    ['Catat Pelanggaran', 'catatan_pelanggaran.php?embed=1', 'bi-journal-plus'],
-    ['Tindakan', 'tindakan.php?embed=1', 'bi-clipboard-check'],
-    ['Riwayat Pelanggaran', 'riwayat.php?embed=1', 'bi-clock-history'],
-    ['Laporan', 'laporan.php?embed=1', 'bi-file-earmark-text'],
-    ['Rekap Poin', 'rekap_point.php?embed=1', 'bi-bar-chart'],
-    ['About Me', 'about_me.php?embed=1', 'bi-person-circle']
-];
-
-
-// ========================================
-// MENU WALI KELAS
-// ========================================
-$menuWali = [
-    ['Dashboard', 'dashboard.php?embed=1', 'bi-speedometer2'],
-    ['Riwayat Pelanggaran', 'riwayat.php?embed=1', 'bi-clock-history'],
-    ['Rekap Poin', 'rekap_point.php?embed=1', 'bi-bar-chart'],
-    ['Laporan', 'laporan.php?embed=1', 'bi-file-earmark-text'],
-    ['About Me', 'about_me.php?embed=1', 'bi-person-circle']
-];
-
-
-// ========================================
-// MENENTUKAN MENU BERDASARKAN ROLE
-// ========================================
-if (in_array($role, ['admin', 'administrator'], true)) {
-
-    $menu = $menuAdmin;
-    $roleLabel = 'Administrator';
-
-} elseif (in_array(
-    $role,
-    ['wali kelas', 'wali_kelas', 'walikelas', 'wali-kelas'],
-    true
-)) {
-
-    $menu = $menuWali;
-    $roleLabel = 'Wali Kelas';
-
-} else {
-
-    $menu = $menuGuru;
-    $roleLabel = 'Guru';
-}
+// Menu diambil dari includes/cek_akses.php agar menu sidebar
+// selalu sama dengan halaman yang boleh dibuka oleh pengguna.
+$menu = hak_menu_role($role);
 ?>
 
 <!doctype html>
@@ -342,23 +327,12 @@ if (in_array($role, ['admin', 'administrator'], true)) {
 
             <div class="role-pill">
                 Akses:
-                <?= htmlspecialchars($roleLabel, ENT_QUOTES, 'UTF-8') ?>
+                <strong><?= htmlspecialchars($roleLabel, ENT_QUOTES, 'UTF-8') ?></strong>
             </div>
 
             <nav class="nav nav-pills flex-column" aria-label="Navigasi utama">
 
-                <?php foreach ($menu as $i => $item): ?>
-
-                    <a
-                        class="nav-link <?= $i === 0 ? 'active' : '' ?>"
-                        href="<?= htmlspecialchars($item[1], ENT_QUOTES, 'UTF-8') ?>"
-                        target="contentFrame"
-                    >
-                        <i class="bi <?= htmlspecialchars($item[2], ENT_QUOTES, 'UTF-8') ?>"></i>
-                        <span><?= htmlspecialchars($item[0], ENT_QUOTES, 'UTF-8') ?></span>
-                    </a>
-
-                <?php endforeach; ?>
+                <?= hak_menu_html($menu, 'dashboard.php') ?>
 
                 <hr class="text-secondary">
 
@@ -412,8 +386,47 @@ links.forEach(function(link) {
 });
 
 
+// Menyorot menu sesuai halaman yang sedang dimuat di iframe
+function aktifkanMenuSesuaiFrame() {
+
+    const sumber = frame.getAttribute('src') || '';
+
+    const bagian = sumber.split('?');
+
+    const namaFile = bagian[0].split('/').pop();
+
+    if (!namaFile) {
+        return;
+    }
+
+    // Parameter selain "embed" dipakai untuk membedakan menu yang
+    // menunjuk file sama, misalnya Laporan dan Cetak / Export.
+    const parameter = (bagian[1] || '')
+        .split('&')
+        .filter(function(item) {
+            return item && item.indexOf('embed=') === -1;
+        })
+        .join('&');
+
+    const kunci = namaFile + (parameter ? '&' + parameter : '');
+
+    links.forEach(function(item) {
+
+        item.classList.remove('active');
+
+        if (item.getAttribute('data-file') === kunci) {
+            item.classList.add('active');
+        }
+
+    });
+
+}
+
+
 // Menyesuaikan tampilan halaman di dalam iframe
 frame.addEventListener('load', function() {
+
+    aktifkanMenuSesuaiFrame();
 
     try {
 

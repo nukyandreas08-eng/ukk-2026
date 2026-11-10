@@ -208,12 +208,14 @@ $kelas = mysqli_query(
      ORDER BY tingkat, jurusan, nama'
 );
 
-// Mengambil daftar tahun ajaran
+// Mengambil daftar tahun ajaran.
+// Tahun ajaran aktif ditampilkan lebih dulu, dan nilai yang
+// tersimpan tetap terpilih.
 $tahun = mysqli_query(
     $koneksi,
     'SELECT id, nama
      FROM t_tahun_ajaran
-     ORDER BY id DESC'
+     ORDER BY status_aktif DESC, id DESC'
 );
 ?>
 

@@ -2,6 +2,9 @@
 require_once __DIR__ . '/includes/cek_session.php';
 require_once __DIR__ . '/config/koneksi.php';
 
+$embed = ((($_POST['embed'] ?? $_GET['embed'] ?? '') === '1'));
+$kelolaGuru = 'kelola_guru.php' . ($embed ? '?embed=1' : '');
+
 // ========================================
 // PROSES TAMBAH GURU DAN AKUN LOGIN OTOMATIS
 // ========================================
@@ -19,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'tambah'
     // Memeriksa kelengkapan dan kebenaran data formulir.
     if ($nip !== '' && !preg_match('/^\d{1,10}$/', $nip)) {
         $_SESSION['pesan'] = 'NIP hanya boleh angka dan maksimal 10 digit.';
-        header('Location: kelola_guru.php?embed=1');
+        header('Location: ' . $kelolaGuru);
         exit;
     }
 
@@ -39,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'tambah'
             $_SESSION['pesan'] = 'Semua data wajib diisi dengan benar.';
         }
 
-        header('Location: kelola_guru.php?embed=1');
+        header('Location: ' . $kelolaGuru);
         exit;
     }
 
@@ -55,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'tambah'
 
     if ($nip_dipakai) {
         $_SESSION['pesan'] = 'NIP sudah digunakan guru lain.';
-        header('Location: kelola_guru.php?embed=1');
+        header('Location: ' . $kelolaGuru);
         exit;
     }
 
@@ -73,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'tambah'
 
     if ($email_dipakai) {
         $_SESSION['pesan'] = 'Email sudah digunakan. Gunakan email yang berbeda.';
-        header('Location: kelola_guru.php?embed=1');
+        header('Location: ' . $kelolaGuru);
         exit;
     }
 
@@ -102,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'tambah'
     if (!mysqli_stmt_execute($buat_akun)) {
         mysqli_rollback($koneksi);
         $_SESSION['pesan'] = 'Gagal membuat akun guru: ' . mysqli_stmt_error($buat_akun);
-        header('Location: kelola_guru.php?embed=1');
+        header('Location: ' . $kelolaGuru);
         exit;
     }
 
@@ -135,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'tambah'
         $_SESSION['pesan'] = 'Gagal menyimpan data guru: ' . mysqli_stmt_error($buat_guru);
     }
 
-    header('Location: kelola_guru.php?embed=1');
+    header('Location: ' . $kelolaGuru);
     exit;
 }
 
@@ -148,7 +151,7 @@ if (($_GET['aksi'] ?? '') === 'hapus') {
 
     if (!$id || $id < 1) {
         $_SESSION['pesan'] = 'ID guru tidak valid.';
-        header('Location: kelola_guru.php?embed=1');
+        header('Location: ' . $kelolaGuru);
         exit;
     }
 
@@ -164,7 +167,7 @@ if (($_GET['aksi'] ?? '') === 'hapus') {
 
     if (!$guru) {
         $_SESSION['pesan'] = 'Data guru tidak ditemukan.';
-        header('Location: kelola_guru.php?embed=1');
+        header('Location: ' . $kelolaGuru);
         exit;
     }
 
@@ -201,11 +204,11 @@ if (($_GET['aksi'] ?? '') === 'hapus') {
     }
 
     mysqli_stmt_close($hapus_guru);
-    header('Location: kelola_guru.php?embed=1');
+    header('Location: ' . $kelolaGuru);
     exit;
 }
 
 // Jika aksi tidak dikenali, kembali ke halaman kelola guru.
 $_SESSION['pesan'] = 'Aksi tidak dikenali.';
-header('Location: kelola_guru.php?embed=1');
+header('Location: ' . $kelolaGuru);
 exit;

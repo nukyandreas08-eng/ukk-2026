@@ -1,6 +1,14 @@
 <?php
+/**
+ * ============================================================
+ * PEMBUATAN AKUN GURU CONTOH
+ * ============================================================
+ * Script ini hanya boleh dijalankan oleh administrator yang sudah
+ * login (dijaga oleh includes/cek_session.php).
+ */
 
-include 'config/koneksi.php';
+require_once __DIR__ . '/includes/cek_session.php';
+require_once __DIR__ . '/config/koneksi.php';
 
 $name = 'guru';
 $email = 'guru@gmail.com';
@@ -28,5 +36,3 @@ if (mysqli_stmt_execute($stmt)) {
 } else {
     echo "Gagal membuat user: " . mysqli_error($koneksi);
 }
-
-?>

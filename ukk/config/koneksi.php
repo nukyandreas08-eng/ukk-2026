@@ -1,16 +1,28 @@
 <?php
+/**
+ * Koneksi database tunggal untuk seluruh aplikasi.
+ *
+ * File ini aman di-require berkali-kali (require_once maupun include)
+ * karena hanya satu koneksi yang dibuat dan dibagikan lewat $GLOBALS.
+ */
 
-$host = 'localhost';
-$user = 'root';
-$password = '';
-$database = 'db_ukk_2026';
+if (!isset($GLOBALS['koneksi']) || !($GLOBALS['koneksi'] instanceof mysqli)) {
 
-$koneksi = mysqli_connect($host, $user, $password, $database);
+    $host = 'localhost';
+    $user = 'root';
+    $password = '';
+    $database = 'db_ukk_2026';
 
-if (!$koneksi) {
-    die('Koneksi database gagal: ' . mysqli_connect_error());
+    $koneksi = mysqli_connect($host, $user, $password, $database);
+
+    if (!$koneksi) {
+        die('Koneksi database gagal: ' . mysqli_connect_error());
+    }
+
+    mysqli_set_charset($koneksi, "utf8mb4");
+
+    $GLOBALS['koneksi'] = $koneksi;
 }
 
-mysqli_set_charset($koneksi, "utf8mb4");
-
-?>
+// Pastikan variabel lokal pada file pemanggil ikut terisi.
+$koneksi = $GLOBALS['koneksi'];

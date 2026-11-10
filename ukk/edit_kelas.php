@@ -1,9 +1,17 @@
 <?php
 require_once __DIR__ . '/includes/cek_session.php';
 require_once __DIR__ . '/config/koneksi.php';
+require_once __DIR__ . '/includes/tahun_ajaran.php';
 
 $embed = (($_GET['embed'] ?? $_POST['embed'] ?? '') === '1');
+
+// ID dibaca dari GET maupun POST, agar form edit tetap bekerja
+// ketika dikirim melalui POST.
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+
+if (!$id || $id < 1) {
+    $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+}
 
 if (!$id || $id < 1) {
     header('Location: kelola_kelas.php?pesan=id_tidak_valid' . ($embed ? '&embed=1' : ''));
@@ -43,22 +51,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         !in_array($status, [0, 1], true)) {
         $error = 'Lengkapi semua data kelas dengan benar.';
     } else {
-        // Tahun ajaran tidak lagi diubah dari form edit kelas.
+        // Kelas tetap berada pada tahun ajaran aktif. Bila kelas
+        // sebelumnya belum tertaut, sambungkan sekarang.
+        $idTahunAktif = tahun_ajaran_aktif_id($koneksi);
+
         $up = mysqli_prepare(
             $koneksi,
             'UPDATE t_kelas
-             SET nama = ?, tingkat = ?, jurusan = ?, status_aktif = ?, updated_at = NOW()
+             SET nama = ?, tingkat = ?, jurusan = ?,
+                 tahun_ajaran_id = ?, status_aktif = ?, updated_at = NOW()
              WHERE id = ?'
         );
 
         if (!$up) {
             $error = 'Gagal menyiapkan perubahan: ' . mysqli_error($koneksi);
         } else {
-            mysqli_stmt_bind_param($up, 'sssii', $nama, $tingkat, $jurusan, $status, $id);
+            mysqli_stmt_bind_param(
+                $up,
+                'ssssii',
+                $nama,
+                $tingkat,
+                $jurusan,
+                $idTahunAktif,
+                $status,
+                $id
+            );
 
             if (mysqli_stmt_execute($up)) {
                 mysqli_stmt_close($up);
-                header('Location: kelola_kelas.php?pesan=edit_berhasil' . ($embed ? '&embed=1' : ''));
+
+                $_SESSION['pesan'] = 'Data kelas berhasil diperbarui.';
+
+                header('Location: kelola_kelas.php' . ($embed ? '?embed=1' : ''));
                 exit;
             }
 
@@ -77,6 +101,7 @@ function e_edit_kelas($v) {
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
 ?>
+<?php if (!$embed): ?>
 <!doctype html>
 <html lang="id">
 <head>
@@ -86,7 +111,8 @@ function e_edit_kelas($v) {
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-<main class="container py-4">
+<?php endif; ?>
+<main class="container-fluid p-3 p-md-4 bg-white">
     <div class="card shadow-sm">
         <div class="card-header">
             <h4 class="mb-0">Edit Kelas</h4>
@@ -98,6 +124,7 @@ function e_edit_kelas($v) {
 
             <form method="post" class="row g-3">
                 <input type="hidden" name="embed" value="<?= $embed ? '1' : '0' ?>">
+                <input type="hidden" name="id" value="<?= (int) $id ?>">
 
                 <div class="col-md-6">
                     <label class="form-label" for="nama">Nama Kelas</label>
@@ -145,5 +172,7 @@ function e_edit_kelas($v) {
         </div>
     </div>
 </main>
+<?php if (!$embed): ?>
 </body>
 </html>
+<?php endif; ?>

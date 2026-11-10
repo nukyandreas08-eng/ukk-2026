@@ -29,7 +29,7 @@ $id = filter_var(
 if (!$id || $id < 1) {
     $_SESSION['pesan'] = 'ID siswa tidak valid.';
 
-    header('Location: kelola_siswa.php?embed=1');
+    header('Location: kelola_siswa.php' . ($embed ? '?embed=1' : ''));
     exit;
 }
 
@@ -63,7 +63,7 @@ mysqli_stmt_close($stmt);
 if (!$siswa) {
     $_SESSION['pesan'] = 'Data siswa tidak ditemukan.';
 
-    header('Location: kelola_siswa.php?embed=1');
+    header('Location: kelola_siswa.php' . ($embed ? '?embed=1' : ''));
     exit;
 }
 
@@ -375,7 +375,7 @@ if (!$embed):
             <!-- Kembali ke halaman kelola siswa -->
             <a
                 class="btn btn-secondary"
-                href="kelola_siswa.php?embed=1"
+                href="kelola_siswa.php<?= $embed ? '?embed=1' : '' ?>"
             >
                 Batal
             </a>

@@ -1,8 +1,8 @@
 <?php
 session_start(); require_once 'includes/cek_session.php'; require_once 'config/koneksi.php';
-if($_SERVER['REQUEST_METHOD']!=='POST'){header('Location: catatan_pelanggaran.php');exit;}
+if($_SERVER['REQUEST_METHOD']!=='POST'){header('Location: kelola_jenis_pelanggaran.php');exit;}
 $aksi=$_POST['aksi']??'tambah'; $embed=(($_POST['embed']??'')==='1');
-function kembaliPelanggaran($embed){header('Location: catatan_pelanggaran.php'.($embed?'?embed=1':''));exit;}
+function kembaliPelanggaran($embed){header('Location: kelola_jenis_pelanggaran.php'.($embed?'?embed=1':''));exit;}
 if($aksi==='hapus'){
  $id=(int)($_POST['id']??0);
  if($id<1) $_SESSION['pesan']='ID pelanggaran tidak valid.';

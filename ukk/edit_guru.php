@@ -25,7 +25,7 @@ if ($id <= 0) {
 
     $_SESSION['pesan'] = 'ID guru tidak valid.';
 
-    header('Location: kelola_guru.php?embed=1');
+    header('Location: kelola_guru.php' . ($embed ? '?embed=1' : ''));
     exit;
 }
 
@@ -52,7 +52,7 @@ if (!$guru) {
 
     $_SESSION['pesan'] = 'Data guru tidak ditemukan.';
 
-    header('Location: kelola_guru.php?embed=1');
+    header('Location: kelola_guru.php' . ($embed ? '?embed=1' : ''));
     exit;
 }
 
@@ -281,7 +281,7 @@ function e($nilai)
             </button>
 
             <a
-                href="kelola_guru.php?embed=1"
+                href="kelola_guru.php<?= $embed ? '?embed=1' : '' ?>"
                 class="btn btn-secondary"
             >
                 Batal

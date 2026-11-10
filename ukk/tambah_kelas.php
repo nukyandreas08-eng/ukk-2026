@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/cek_session.php';
 require_once __DIR__ . '/config/koneksi.php';
+require_once __DIR__ . '/includes/tahun_ajaran.php';
 
 $embed = (($_GET['embed'] ?? $_POST['embed'] ?? '') === '1');
 $error = '';
@@ -16,21 +17,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         !in_array($status, [0, 1], true)) {
         $error = 'Lengkapi semua data kelas dengan benar.';
     } else {
-        // Tahun ajaran tidak lagi dipilih atau disimpan dari form kelas.
+        // Kelas baru otomatis ditempatkan pada tahun ajaran aktif,
+        // sehingga langsung muncul pada dropdown penempatan siswa
+        // dan wali kelas.
+        $idTahunAktif = tahun_ajaran_aktif_id($koneksi);
+
         $stmt = mysqli_prepare(
             $koneksi,
-            'INSERT INTO t_kelas (nama, tingkat, jurusan, status_aktif, created_at, updated_at)
-             VALUES (?, ?, ?, ?, NOW(), NOW())'
+            'INSERT INTO t_kelas
+             (nama, tingkat, jurusan, tahun_ajaran_id, status_aktif, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, NOW(), NOW())'
         );
 
         if (!$stmt) {
             $error = 'Gagal menyiapkan penyimpanan: ' . mysqli_error($koneksi);
         } else {
-            mysqli_stmt_bind_param($stmt, 'sssi', $nama, $tingkat, $jurusan, $status);
+            mysqli_stmt_bind_param(
+                $stmt,
+                'sssii',
+                $nama,
+                $tingkat,
+                $jurusan,
+                $idTahunAktif,
+                $status
+            );
 
             if (mysqli_stmt_execute($stmt)) {
                 mysqli_stmt_close($stmt);
-                header('Location: kelola_kelas.php?pesan=tambah_berhasil' . ($embed ? '&embed=1' : ''));
+
+                $_SESSION['pesan'] = 'Data kelas berhasil ditambahkan.';
+
+                header('Location: kelola_kelas.php' . ($embed ? '?embed=1' : ''));
                 exit;
             }
 
@@ -44,6 +61,7 @@ function e_tambah_kelas($v) {
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
 ?>
+<?php if (!$embed): ?>
 <!doctype html>
 <html lang="id">
 <head>
@@ -53,7 +71,8 @@ function e_tambah_kelas($v) {
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-<main class="container py-4">
+<?php endif; ?>
+<main class="container-fluid p-3 p-md-4 bg-white">
     <div class="card shadow-sm">
         <div class="card-header">
             <h4 class="mb-0">Tambah Kelas</h4>
@@ -113,5 +132,7 @@ function e_tambah_kelas($v) {
         </div>
     </div>
 </main>
+<?php if (!$embed): ?>
 </body>
 </html>
+<?php endif; ?>

@@ -64,6 +64,7 @@ function e($value) {
 
     <form action="proses_guru.php" method="POST" class="mb-4">
         <input type="hidden" name="aksi" value="tambah">
+        <input type="hidden" name="embed" value="<?= $embed ? '1' : '0' ?>">
 
         <div class="table-responsive">
             <table class="table table-bordered align-middle">
@@ -192,12 +193,12 @@ function e($value) {
 
                             <td>
                                 <div class="d-flex gap-2">
-                                    <a href="edit_guru.php?id=<?= (int)$guru['id'] ?>&amp;embed=1"
+                                    <a href="edit_guru.php?id=<?= (int)$guru['id'] ?><?= $embed ? '&embed=1' : '' ?>"
                                        class="btn btn-primary btn-sm">
                                         Edit
                                     </a>
 
-                                    <a href="proses_guru.php?aksi=hapus&amp;id=<?= (int)$guru['id'] ?>&amp;embed=1"
+                                    <a href="proses_guru.php?aksi=hapus&amp;id=<?= (int)$guru['id'] ?><?= $embed ? '&amp;embed=1' : '' ?>"
                                        class="btn btn-danger btn-sm"
                                        onclick="return confirm('Yakin ingin menghapus data guru ini?')">
                                         Hapus

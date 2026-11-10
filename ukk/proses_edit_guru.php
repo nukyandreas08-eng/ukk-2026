@@ -2,9 +2,13 @@
 require_once __DIR__ . '/includes/cek_session.php';
 require_once __DIR__ . '/config/koneksi.php';
 
+$embed = (($_POST['embed'] ?? '') === '1');
+$kelolaGuru = 'kelola_guru.php' . ($embed ? '?embed=1' : '');
+$embedParam = $embed ? '&embed=1' : '';
+
 // Form edit harus dikirim menggunakan POST.
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: kelola_guru.php?embed=1');
+    header('Location: ' . $kelolaGuru);
     exit;
 }
 
@@ -18,9 +22,11 @@ $konfirmasi_password = $_POST['konfirmasi_password'] ?? '';
 $status_aktif = filter_var($_POST['status_aktif'] ?? null, FILTER_VALIDATE_INT);
 $ubah_password = ($password !== '' || $konfirmasi_password !== '');
 
+$editGuru = 'edit_guru.php?id=' . (int) $id . $embedParam;
+
 if ($nip !== '' && !preg_match('/^\d{1,10}$/', $nip)) {
     $_SESSION['pesan'] = 'NIP hanya boleh angka dan maksimal 10 digit.';
-    header('Location: kelola_guru.php?embed=1');
+    header('Location: ' . $kelolaGuru);
     exit;
 }
 
@@ -45,7 +51,7 @@ if (
         $_SESSION['pesan'] = 'Data guru tidak valid.';
     }
 
-    header('Location: edit_guru.php?id=' . (int) $id . '&embed=1');
+    header('Location: ' . $editGuru);
     exit;
 }
 
@@ -54,14 +60,17 @@ $stmt = mysqli_prepare(
     $koneksi,
     'SELECT id, user_id FROM t_guru WHERE id = ?'
 );
+
 mysqli_stmt_bind_param($stmt, 'i', $id);
 mysqli_stmt_execute($stmt);
+
 $guru = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+
 mysqli_stmt_close($stmt);
 
 if (!$guru) {
     $_SESSION['pesan'] = 'Data guru tidak ditemukan.';
-    header('Location: kelola_guru.php?embed=1');
+    header('Location: ' . $kelolaGuru);
     exit;
 }
 
@@ -69,8 +78,9 @@ $user_id = (int) ($guru['user_id'] ?? 0);
 
 // Guru yang belum punya akun wajib mengisi password.
 if ($user_id < 1 && !$ubah_password) {
-    $_SESSION['pesan'] = 'Guru ini belum memiliki akun. Silakan isi password dan konfirmasi password.';
-    header('Location: edit_guru.php?id=' . $id . '&embed=1');
+    $_SESSION['pesan'] = 'Guru ini belum memiliki akun. '
+        . 'Silakan isi password dan konfirmasi password.';
+    header('Location: ' . $editGuru);
     exit;
 }
 
@@ -79,14 +89,17 @@ $cek_nip = mysqli_prepare(
     $koneksi,
     'SELECT id FROM t_guru WHERE nip = ? AND id <> ?'
 );
+
 mysqli_stmt_bind_param($cek_nip, 'si', $nip, $id);
 mysqli_stmt_execute($cek_nip);
+
 $nip_dipakai = mysqli_num_rows(mysqli_stmt_get_result($cek_nip)) > 0;
+
 mysqli_stmt_close($cek_nip);
 
 if ($nip_dipakai) {
     $_SESSION['pesan'] = 'NIP sudah digunakan guru lain.';
-    header('Location: edit_guru.php?id=' . $id . '&embed=1');
+    header('Location: ' . $editGuru);
     exit;
 }
 
@@ -96,30 +109,38 @@ if ($user_id > 0) {
         $koneksi,
         'SELECT id FROM t_users WHERE email = ? AND id <> ?'
     );
+
     mysqli_stmt_bind_param($cek_email, 'si', $email, $user_id);
 } else {
     $cek_email = mysqli_prepare(
         $koneksi,
         'SELECT id FROM t_users WHERE email = ?'
     );
+
     mysqli_stmt_bind_param($cek_email, 's', $email);
 }
+
 mysqli_stmt_execute($cek_email);
+
 $email_akun_dipakai = mysqli_num_rows(mysqli_stmt_get_result($cek_email)) > 0;
+
 mysqli_stmt_close($cek_email);
 
 $cek_email_guru = mysqli_prepare(
     $koneksi,
     'SELECT id FROM t_guru WHERE email = ? AND id <> ?'
 );
+
 mysqli_stmt_bind_param($cek_email_guru, 'si', $email, $id);
 mysqli_stmt_execute($cek_email_guru);
+
 $email_guru_dipakai = mysqli_num_rows(mysqli_stmt_get_result($cek_email_guru)) > 0;
+
 mysqli_stmt_close($cek_email_guru);
 
 if ($email_akun_dipakai || $email_guru_dipakai) {
     $_SESSION['pesan'] = 'Email sudah digunakan. Gunakan email yang berbeda.';
-    header('Location: edit_guru.php?id=' . $id . '&embed=1');
+    header('Location: ' . $editGuru);
     exit;
 }
 
@@ -128,18 +149,20 @@ mysqli_begin_transaction($koneksi);
 // Jika akun belum ada, buat akun login guru secara otomatis.
 if ($user_id < 1) {
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
+
     $buat_akun = mysqli_prepare(
         $koneksi,
         "INSERT INTO t_users
             (name, email, password, remember_token, role, created_at, updated_at)
          VALUES (?, ?, ?, '', 'guru', NOW(), NOW())"
     );
+
     mysqli_stmt_bind_param($buat_akun, 'sss', $nama, $email, $password_hash);
 
     if (!mysqli_stmt_execute($buat_akun)) {
         mysqli_rollback($koneksi);
         $_SESSION['pesan'] = 'Gagal membuat akun guru: ' . mysqli_stmt_error($buat_akun);
-        header('Location: edit_guru.php?id=' . $id . '&embed=1');
+        header('Location: ' . $editGuru);
         exit;
     }
 
@@ -153,6 +176,7 @@ $update_guru = mysqli_prepare(
      SET nip = ?, nama = ?, email = ?, user_id = ?, status_aktif = ?, updated_at = NOW()
      WHERE id = ?'
 );
+
 mysqli_stmt_bind_param(
     $update_guru,
     'sssiii',
@@ -163,18 +187,21 @@ mysqli_stmt_bind_param(
     $status_aktif,
     $id
 );
+
 $guru_berhasil = mysqli_stmt_execute($update_guru);
 
 // Sinkronkan nama dan email akun dengan data guru.
 if ($guru_berhasil) {
     if ($ubah_password) {
         $password_hash = password_hash($password, PASSWORD_DEFAULT);
+
         $update_akun = mysqli_prepare(
             $koneksi,
             "UPDATE t_users
              SET name = ?, email = ?, password = ?, updated_at = NOW()
              WHERE id = ? AND role = 'guru'"
         );
+
         mysqli_stmt_bind_param(
             $update_akun,
             'sssi',
@@ -190,6 +217,7 @@ if ($guru_berhasil) {
              SET name = ?, email = ?, updated_at = NOW()
              WHERE id = ? AND role = 'guru'"
         );
+
         mysqli_stmt_bind_param($update_akun, 'ssi', $nama, $email, $user_id);
     }
 
@@ -206,5 +234,5 @@ if ($guru_berhasil && $akun_berhasil) {
     $_SESSION['pesan'] = 'Gagal memperbarui data guru atau akun login.';
 }
 
-header('Location: kelola_guru.php?embed=1');
+header('Location: ' . $kelolaGuru);
 exit;

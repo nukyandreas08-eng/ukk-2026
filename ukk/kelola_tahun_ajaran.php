@@ -1,17 +1,21 @@
 <?php
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
+include 'includes/tahun_ajaran.php';
 
 $embed = isset($_GET['embed']) && $_GET['embed'] === '1';
+
+// Tahun ajaran aktif ditampilkan paling atas.
+$idTahunAktif = tahun_ajaran_aktif_id($koneksi);
 
 $query = mysqli_query($koneksi, "
     SELECT * FROM t_tahun_ajaran
     ORDER BY
         CASE
-            WHEN nama = '2026/2027' THEN 0
+            WHEN id = $idTahunAktif THEN 0
             ELSE 1
         END ASC,
-        id ASC
+        id DESC
 ");
 
 if (!$query) {
@@ -114,6 +118,12 @@ function e($value) {
                                 <span class="badge text-bg-success">
                                     Aktif
                                 </span>
+
+                                <?php if ((int)$row['id'] === $idTahunAktif): ?>
+                                    <span class="badge text-bg-primary">
+                                        Terpilih Otomatis
+                                    </span>
+                                <?php endif; ?>
                             <?php else: ?>
                                 <span class="badge text-bg-secondary">
                                     Tidak Aktif

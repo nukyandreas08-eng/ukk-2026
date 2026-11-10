@@ -1,15 +1,22 @@
 <?php
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
+include 'includes/tahun_ajaran.php';
 
 $embed = isset($_GET['embed']) && $_GET['embed'] === '1';
+$cetak = isset($_GET['cetak']) && $_GET['cetak'] === '1';
 
-$tahun_ajaran_id = (int) ($_GET['tahun_ajaran_id'] ?? 0);
+// Jika belum ada pilihan, tahun ajaran aktif otomatis dipakai.
+$tahun_ajaran_id = isset($_GET['tahun_ajaran_id'])
+    ? (int) $_GET['tahun_ajaran_id']
+    : tahun_ajaran_aktif_id($koneksi);
+
 $kelas_id = (int) ($_GET['kelas_id'] ?? 0);
 
 $query_tahun = mysqli_query(
     $koneksi,
-    "SELECT id, nama FROM t_tahun_ajaran ORDER BY id DESC"
+    "SELECT id, nama FROM t_tahun_ajaran
+     ORDER BY status_aktif DESC, id DESC"
 );
 
 if (!$query_tahun) {
@@ -260,6 +267,16 @@ document.addEventListener('DOMContentLoaded', function () {
 function cetakLaporan() {
     window.print();
 }
+
+// Menu "Cetak / Export" membuka halaman ini dengan ?cetak=1,
+// sehingga dialog cetak langsung muncul.
+<?php if ($cetak): ?>
+window.addEventListener('load', function () {
+    setTimeout(function () {
+        window.print();
+    }, 400);
+});
+<?php endif; ?>
 
 function kembaliDashboard(event) {
     try {

@@ -1,20 +1,37 @@
 <?php
-include 'includes/cek_session.php';
-include 'config/koneksi.php';
+require_once __DIR__ . '/includes/cek_session.php';
+require_once __DIR__ . '/config/koneksi.php';
+require_once __DIR__ . '/includes/tahun_ajaran.php';
+
+$embed = (($_GET['embed'] ?? $_POST['embed'] ?? '') === '1');
+$kembali = 'kelola_wali_kelas.php' . ($embed ? '?embed=1' : '');
 
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     $tahun_ajaran_id = (int) ($_POST['tahun_ajaran_id'] ?? 0);
     $kelas_id = (int) ($_POST['kelas_id'] ?? 0);
     $guru_id = (int) ($_POST['guru_id'] ?? 0);
     $tanggal_mulai = $_POST['tanggal_mulai'] ?? '';
     $tanggal_selesai = $_POST['tanggal_selesai'] ?? '';
     $status_aktif = (int) ($_POST['status_aktif'] ?? 1);
-    $cekTahunAktif = mysqli_prepare($koneksi, 'SELECT id FROM t_tahun_ajaran WHERE id = ? AND status_aktif = 1');
-    mysqli_stmt_bind_param($cekTahunAktif, 'i', $tahun_ajaran_id); mysqli_stmt_execute($cekTahunAktif);
-    $tahunAktifValid = mysqli_num_rows(mysqli_stmt_get_result($cekTahunAktif)) > 0; mysqli_stmt_close($cekTahunAktif);
-    if (!$tahunAktifValid) $error = 'Pilih tahun ajaran yang berstatus aktif.';
+
+    $cekTahunAktif = mysqli_prepare(
+        $koneksi,
+        'SELECT id FROM t_tahun_ajaran WHERE id = ? AND status_aktif = 1'
+    );
+
+    mysqli_stmt_bind_param($cekTahunAktif, 'i', $tahun_ajaran_id);
+    mysqli_stmt_execute($cekTahunAktif);
+
+    $tahunAktifValid = mysqli_num_rows(mysqli_stmt_get_result($cekTahunAktif)) > 0;
+
+    mysqli_stmt_close($cekTahunAktif);
+
+    if (!$tahunAktifValid) {
+        $error = 'Pilih tahun ajaran yang berstatus aktif.';
+    }
 
     if (
         $tahun_ajaran_id <= 0 ||
@@ -29,53 +46,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($tanggal_mulai > $tanggal_selesai) {
         $error = 'Tanggal mulai tidak boleh melewati tanggal selesai.';
     } else {
+
         // Pastikan kelas belum memiliki penugasan pada tahun ajaran yang sama.
         $cek = mysqli_prepare(
             $koneksi,
-            "SELECT id FROM t_wali_kelas
-             WHERE tahun_ajaran_id = ? AND kelas_id = ?"
+            'SELECT id FROM t_wali_kelas
+             WHERE tahun_ajaran_id = ? AND kelas_id = ?'
         );
-        mysqli_stmt_bind_param(
-            $cek,
-            "ii",
-            $tahun_ajaran_id,
-            $kelas_id
-        );
+
+        mysqli_stmt_bind_param($cek, 'ii', $tahun_ajaran_id, $kelas_id);
         mysqli_stmt_execute($cek);
+
         $hasil_cek = mysqli_stmt_get_result($cek);
 
-        if (mysqli_num_rows($hasil_cek) > 0) {
+        $kelasSudahAda = mysqli_num_rows($hasil_cek) > 0;
+
+        mysqli_stmt_close($cek);
+
+        if ($kelasSudahAda) {
             $error = 'Kelas tersebut sudah memiliki data wali kelas pada tahun ajaran yang dipilih.';
         } else {
+
             // Satu guru hanya boleh menjadi wali kelas untuk satu kelas.
-            $cekGuru = mysqli_prepare($koneksi, 'SELECT id FROM t_wali_kelas WHERE guru_id = ?');
+            $cekGuru = mysqli_prepare(
+                $koneksi,
+                'SELECT id FROM t_wali_kelas WHERE guru_id = ?'
+            );
+
             mysqli_stmt_bind_param($cekGuru, 'i', $guru_id);
             mysqli_stmt_execute($cekGuru);
+
             $guruSudahWali = mysqli_num_rows(mysqli_stmt_get_result($cekGuru)) > 0;
+
             mysqli_stmt_close($cekGuru);
+
             if ($guruSudahWali) {
                 $error = 'Guru tersebut sudah menjadi wali kelas.';
             }
         }
 
         if ($error === '') {
+
             $stmt = mysqli_prepare(
                 $koneksi,
                 "INSERT INTO t_wali_kelas
-                (
-                    tahun_ajaran_id,
-                    kelas_id,
-                    guru_id,
-                    tanggal_mulai,
-                    tanggal_selesai,
-                    status_aktif
-                )
-                VALUES (?, ?, ?, ?, ?, ?)"
+                 (tahun_ajaran_id, kelas_id, guru_id, tanggal_mulai, tanggal_selesai, status_aktif)
+                 VALUES (?, ?, ?, ?, ?, ?)"
             );
 
             mysqli_stmt_bind_param(
                 $stmt,
-                "iiissi",
+                'iiissi',
                 $tahun_ajaran_id,
                 $kelas_id,
                 $guru_id,
@@ -85,21 +106,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
 
             if (mysqli_stmt_execute($stmt)) {
-                header('Location: kelola_wali_kelas.php');
+                mysqli_stmt_close($stmt);
+
+                $_SESSION['pesan'] = 'Data wali kelas berhasil ditambahkan.';
+
+                header('Location: ' . $kembali);
                 exit;
-            } else {
-                $error = 'Gagal menyimpan data wali kelas: '
-                    . mysqli_error($koneksi);
             }
+
+            $error = 'Gagal menyimpan data wali kelas: ' . mysqli_error($koneksi);
+
+            mysqli_stmt_close($stmt);
         }
     }
 }
 
 // Ambil data pilihan dari database.
-$query_tahun = mysqli_query(
-    $koneksi,
-    "SELECT id, nama FROM t_tahun_ajaran WHERE status_aktif = 1 ORDER BY id DESC"
-);
+// Tahun ajaran yang sedang aktif otomatis terpilih.
+$daftarTahun = tahun_ajaran_aktif_daftar($koneksi);
 
 $query_kelas = mysqli_query(
     $koneksi,
@@ -115,121 +139,118 @@ $query_kelas = mysqli_query(
 
 $query_guru = mysqli_query(
     $koneksi,
-    "SELECT g.id, g.nama FROM t_guru g WHERE NOT EXISTS (SELECT 1 FROM t_wali_kelas wk WHERE wk.guru_id = g.id) ORDER BY g.nama ASC"
+    'SELECT g.id, g.nama FROM t_guru g
+     WHERE NOT EXISTS (SELECT 1 FROM t_wali_kelas wk WHERE wk.guru_id = g.id)
+     ORDER BY g.nama ASC'
 );
 
-if (!$query_tahun || !$query_kelas || !$query_guru) {
+if (!$query_kelas || !$query_guru) {
     die('Gagal mengambil data pilihan. Periksa struktur tabel tahun ajaran, kelas, dan guru.');
 }
 ?>
 
+<?php if (!$embed): ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tambah Wali Kelas</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+<?php endif; ?>
 
-    <h2>Tambah Wali Kelas</h2>
+<div class="container-fluid p-3 p-md-4 bg-white">
+
+    <h2 class="fw-bold mb-3">Tambah Wali Kelas</h2>
+    <hr>
 
     <?php if ($error !== '') { ?>
-        <p style="color: red;">
-            <?= htmlspecialchars($error) ?>
-        </p>
+        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
     <?php } ?>
 
-    <form method="POST" action="">
-        <table cellpadding="8">
-            <tr>
-                <td>Tahun Ajaran</td>
-                <td>:</td>
-                <td>
-                    <select name="tahun_ajaran_id" required>
-                        <option value="">-- Pilih Tahun Ajaran --</option>
+    <form method="POST" action="tambah_wali_kelas.php" class="row g-3">
 
-                        <?php while ($ta = mysqli_fetch_assoc($query_tahun)) { ?>
-                            <option value="<?= (int) $ta['id'] ?>">
-                                <?= htmlspecialchars($ta['nama']) ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </td>
-            </tr>
+        <input type="hidden" name="embed" value="<?= $embed ? '1' : '0' ?>">
 
-            <tr>
-                <td>Kelas</td>
-                <td>:</td>
-                <td>
-                    <select name="kelas_id" required>
-                        <option value="">-- Pilih Kelas --</option>
+        <div class="col-md-4">
+            <label class="form-label">Tahun Ajaran</label>
+            <select name="tahun_ajaran_id" class="form-select" required>
+                <?php if (!$daftarTahun): ?>
+                    <option value="">-- Pilih Tahun Ajaran --</option>
+                <?php endif; ?>
 
-                        <?php while ($kelas = mysqli_fetch_assoc($query_kelas)) { ?>
-                            <option value="<?= (int) $kelas['id'] ?>">
-                                <?= htmlspecialchars(
-                                    $kelas['nama'] . ' - ' .
-                                    $kelas['tingkat'] . ' - ' .
-                                    $kelas['jurusan']
-                                ) ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </td>
-            </tr>
+                <?php foreach ($daftarTahun as $ta): ?>
+                    <option value="<?= (int) $ta['id'] ?>"
+                        <?= $ta['terpilih'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($ta['nama']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
 
-            <tr>
-                <td>Guru Wali Kelas</td>
-                <td>:</td>
-                <td>
-                    <select name="guru_id" required>
-                        <option value="">-- Pilih Guru --</option>
+            <?php if (count($daftarTahun) === 1): ?>
+                <div class="form-text">
+                    Tahun ajaran aktif saat ini otomatis dipilih.
+                </div>
+            <?php endif; ?>
+        </div>
 
-                        <?php while ($guru = mysqli_fetch_assoc($query_guru)) { ?>
-                            <option value="<?= (int) $guru['id'] ?>">
-                                <?= htmlspecialchars($guru['nama']) ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </td>
-            </tr>
+        <div class="col-md-4">
+            <label class="form-label">Kelas</label>
+            <select name="kelas_id" class="form-select" required>
+                <option value="">-- Pilih Kelas --</option>
+                <?php while ($kelas = mysqli_fetch_assoc($query_kelas)) { ?>
+                    <option value="<?= (int) $kelas['id'] ?>">
+                        <?= htmlspecialchars(
+                            $kelas['nama'] . ' - ' .
+                            $kelas['tingkat'] . ' - ' .
+                            $kelas['jurusan']
+                        ) ?>
+                    </option>
+                <?php } ?>
+            </select>
+        </div>
 
-            <tr>
-                <td>Tanggal Mulai</td>
-                <td>:</td>
-                <td>
-                    <input type="date" name="tanggal_mulai" required>
-                </td>
-            </tr>
+        <div class="col-md-4">
+            <label class="form-label">Guru Wali Kelas</label>
+            <select name="guru_id" class="form-select" required>
+                <option value="">-- Pilih Guru --</option>
+                <?php while ($guru = mysqli_fetch_assoc($query_guru)) { ?>
+                    <option value="<?= (int) $guru['id'] ?>">
+                        <?= htmlspecialchars($guru['nama']) ?>
+                    </option>
+                <?php } ?>
+            </select>
+        </div>
 
-            <tr>
-                <td>Tanggal Selesai</td>
-                <td>:</td>
-                <td>
-                    <input type="date" name="tanggal_selesai" required>
-                </td>
-            </tr>
+        <div class="col-md-6">
+            <label class="form-label">Tanggal Mulai</label>
+            <input type="date" name="tanggal_mulai" class="form-control" required>
+        </div>
 
-            <tr>
-                <td>Status</td>
-                <td>:</td>
-                <td>
-                    <select name="status_aktif" required>
-                        <option value="1">Aktif</option>
-                        <option value="0">Tidak Aktif</option>
-                    </select>
-                </td>
-            </tr>
+        <div class="col-md-6">
+            <label class="form-label">Tanggal Selesai</label>
+            <input type="date" name="tanggal_selesai" class="form-control" required>
+        </div>
 
-            <tr>
-                <td colspan="3">
-                    <button type="submit">Simpan</button>
-                    <a href="kelola_wali_kelas.php">Batal</a>
-                </td>
-            </tr>
-        </table>
+        <div class="col-12">
+            <label class="form-label">Status</label>
+            <select name="status_aktif" class="form-select" required>
+                <option value="1">Aktif</option>
+                <option value="0">Tidak Aktif</option>
+            </select>
+        </div>
+
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Simpan</button>
+            <a href="<?= htmlspecialchars($kembali) ?>" class="btn btn-secondary">Batal</a>
+        </div>
     </form>
 
+</div>
+
+<?php if (!$embed): ?>
 </body>
 </html>
+<?php endif; ?>

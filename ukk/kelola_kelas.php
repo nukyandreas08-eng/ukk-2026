@@ -1,12 +1,18 @@
 <?php
 require_once __DIR__ . '/includes/cek_session.php';
 require_once __DIR__ . '/config/koneksi.php';
+require_once __DIR__ . '/includes/tahun_ajaran.php';
 
 $embed = (($_GET['embed'] ?? '') === '1');
 
-$sql = "SELECT id, nama, tingkat, jurusan, status_aktif
-        FROM t_kelas
-        ORDER BY id DESC";
+// Tahun ajaran aktif, dipakai sebagai penanda kelas yang siap dipakai.
+$idTahunAktif = tahun_ajaran_aktif_id($koneksi);
+
+$sql = "SELECT k.id, k.nama, k.tingkat, k.jurusan, k.status_aktif,
+               k.tahun_ajaran_id, ta.nama AS nama_tahun
+        FROM t_kelas k
+        LEFT JOIN t_tahun_ajaran ta ON ta.id = k.tahun_ajaran_id
+        ORDER BY k.id DESC";
 $query = mysqli_query($koneksi, $sql);
 
 if (!$query) {
@@ -39,7 +45,9 @@ function e_kelas($value) {
     <hr>
 
     <?php
-    $pesan = $_GET['pesan'] ?? '';
+    $pesan = $_SESSION['pesan'] ?? ($_GET['pesan'] ?? '');
+    unset($_SESSION['pesan']);
+
     $notifikasi = [
         'tambah_berhasil' => ['success', 'Data kelas berhasil ditambahkan.'],
         'edit_berhasil' => ['success', 'Data kelas berhasil diperbarui.'],
@@ -55,6 +63,8 @@ function e_kelas($value) {
         <div class="alert alert-<?= $jenis ?>">
             <?= e_kelas($isi) ?>
         </div>
+    <?php elseif ($pesan !== ''): ?>
+        <div class="alert alert-info"><?= e_kelas($pesan) ?></div>
     <?php endif; ?>
 
     <p>Kelola data kelas sekolah.</p>
@@ -81,6 +91,7 @@ function e_kelas($value) {
                     <th>Nama Kelas</th>
                     <th>Tingkat</th>
                     <th>Jurusan</th>
+                    <th>Tahun Ajaran</th>
                     <th>Status</th>
                     <th>Aksi</th>
                 </tr>
@@ -96,6 +107,17 @@ function e_kelas($value) {
                     <td><?= e_kelas($row['nama']) ?></td>
                     <td><?= e_kelas($row['tingkat']) ?></td>
                     <td><?= e_kelas($row['jurusan']) ?></td>
+
+                    <td>
+                        <?php if (!empty($row['nama_tahun'])): ?>
+                            <span class="badge text-bg-light text-dark">
+                                <?= e_kelas($row['nama_tahun']) ?>
+                            </span>
+                        <?php else: ?>
+                            <span class="badge text-bg-warning">Belum Ditautkan</span>
+                        <?php endif; ?>
+                    </td>
+
                     <td>
                         <?php if ((int)$row['status_aktif'] === 1): ?>
                             <span class="badge text-bg-success">Aktif</span>

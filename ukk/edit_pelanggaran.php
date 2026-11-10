@@ -59,6 +59,7 @@ function e($nilai)
 }
 ?>
 
+<?php if (!$embed): ?>
 <!doctype html>
 <html lang="id">
 
@@ -75,6 +76,7 @@ function e($nilai)
 </head>
 
 <body class="bg-light">
+<?php endif; ?>
 
 <main class="container py-4">
 
@@ -226,7 +228,7 @@ function e($nilai)
 
                 <a
                     class="btn btn-secondary"
-                    href="catatan_pelanggaran.php<?= $embed ? '?embed=1' : '' ?>"
+                    href="kelola_jenis_pelanggaran.php<?= $embed ? '?embed=1' : '' ?>"
                 >
                     Batal
                 </a>
@@ -238,5 +240,7 @@ function e($nilai)
 
 </main>
 
+<?php if (!$embed): ?>
 </body>
 </html>
+<?php endif; ?>

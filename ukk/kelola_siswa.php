@@ -63,6 +63,7 @@ function e($v) {
 
     <form action="proses_siswa.php" method="post" class="row g-3 mb-4">
         <input type="hidden" name="aksi" value="tambah">
+        <input type="hidden" name="embed" value="<?= $embed ? '1' : '0' ?>">
 
         <div class="col-md-6">
                 <label for="nis" class="form-label">NIS</label>
@@ -198,12 +199,12 @@ function e($v) {
                             <td>
                                 <div class="d-flex gap-2">
                                     <a class="btn btn-primary btn-sm"
-                                       href="edit_siswa.php?id=<?= (int)$s['id'] ?>&amp;embed=1">
+                                       href="edit_siswa.php?id=<?= (int)$s['id'] ?><?= $embed ? '&embed=1' : '' ?>">
                                         Edit
                                     </a>
 
                                     <a class="btn btn-danger btn-sm"
-                                       href="hapus_siswa.php?id=<?= (int)$s['id'] ?>&amp;embed=1"
+                                       href="hapus_siswa.php?id=<?= (int)$s['id'] ?><?= $embed ? '&embed=1' : '' ?>"
                                        onclick="return confirm('Yakin ingin menghapus data siswa ini?')">
                                         Hapus
                                     </a>
