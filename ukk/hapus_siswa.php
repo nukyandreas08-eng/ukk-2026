@@ -2,11 +2,13 @@
 require_once __DIR__ . '/includes/cek_session.php';
 require_once __DIR__ . '/config/koneksi.php';
 
-$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+// Catatan: pakai $_GET, bukan filter_input(), karena filter_input()
+// tidak selalu membaca $_GET pada konfigurasi PHP tertentu.
+$id = (int) ($_GET['id'] ?? 0);
 $embed = (($_GET['embed'] ?? '') === '1');
 $kembali = 'kelola_siswa.php' . ($embed ? '?embed=1' : '');
 
-if (!$id || $id <= 0) {
+if ($id <= 0) {
     $_SESSION['pesan'] = 'ID siswa tidak ditemukan atau tidak valid.';
     header('Location: ' . $kembali);
     exit;

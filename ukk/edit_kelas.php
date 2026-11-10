@@ -5,13 +5,9 @@ require_once __DIR__ . '/includes/tahun_ajaran.php';
 
 $embed = (($_GET['embed'] ?? $_POST['embed'] ?? '') === '1');
 
-// ID dibaca dari GET maupun POST, agar form edit tetap bekerja
-// ketika dikirim melalui POST.
-$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-
-if (!$id || $id < 1) {
-    $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
-}
+// Catatan: pakai $_GET/$_POST, bukan filter_input(), karena
+// filter_input() tidak selalu membaca $_GET pada konfigurasi PHP tertentu.
+$id = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);
 
 if (!$id || $id < 1) {
     header('Location: kelola_kelas.php?pesan=id_tidak_valid' . ($embed ? '&embed=1' : ''));

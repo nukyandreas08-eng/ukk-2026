@@ -2,11 +2,13 @@
 require_once __DIR__ . '/includes/cek_session.php';
 require_once __DIR__ . '/config/koneksi.php';
 
-$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+// Catatan: pakai $_GET/$_POST, bukan filter_input(), karena
+// filter_input() tidak selalu membaca $_GET pada konfigurasi PHP tertentu.
+$id = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);
 $embed = (($_GET['embed'] ?? $_POST['embed'] ?? '') === '1');
 $kembali = 'kelola_tahun_ajaran.php' . ($embed ? '?embed=1' : '');
 
-if (!$id || $id < 1) {
+if ($id < 1) {
     $_SESSION['pesan'] = 'ID tahun ajaran tidak valid.';
     header('Location: ' . $kembali);
     exit;

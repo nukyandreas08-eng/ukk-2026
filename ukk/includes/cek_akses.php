@@ -42,7 +42,7 @@ if (!function_exists('hak_daftar_grup')) {
             'umum' => [HAK_ADMIN, HAK_WALI_KELAS, HAK_GURU],
 
             // Halaman profil-developer (hanya yang punya menu About Me).
-            'about_me' => [HAK_WALI_KELAS, HAK_GURU],
+            'about_me' => [HAK_ADMIN],
 
             // Master data (khusus administrator).
             'master.siswa' => [HAK_ADMIN],
@@ -175,6 +175,7 @@ if (!function_exists('hak_daftar_grup')) {
                 ['Jenis Pelanggaran', 'kelola_jenis_pelanggaran.php', 'bi-list-check'],
                 ['Laporan', 'laporan.php', 'bi-file-earmark-text'],
                 ['Cetak / Export', 'laporan.php', 'bi-printer', 'cetak=1'],
+                ['About Me', 'about_me.php', 'bi-person-circle'],
             ],
 
             HAK_WALI_KELAS => [
@@ -182,7 +183,6 @@ if (!function_exists('hak_daftar_grup')) {
                 ['Riwayat Pelanggaran', 'riwayat.php', 'bi-clock-history'],
                 ['Rekap Poin', 'rekap_point.php', 'bi-bar-chart'],
                 ['Laporan', 'laporan.php', 'bi-file-earmark-text'],
-                ['About Me', 'about_me.php', 'bi-person-circle'],
             ],
 
             HAK_GURU => [
@@ -192,7 +192,6 @@ if (!function_exists('hak_daftar_grup')) {
                 ['Riwayat Pelanggaran', 'riwayat.php', 'bi-clock-history'],
                 ['Laporan', 'laporan.php', 'bi-file-earmark-text'],
                 ['Rekap Poin', 'rekap_point.php', 'bi-bar-chart'],
-                ['About Me', 'about_me.php', 'bi-person-circle'],
             ],
         ];
     }
