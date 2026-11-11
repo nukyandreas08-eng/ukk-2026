@@ -90,14 +90,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'tambah'
     $buat_akun = mysqli_prepare(
         $koneksi,
         "INSERT INTO t_users
-            (name, email, password, remember_token, role, created_at, updated_at)
-         VALUES (?, ?, ?, '', 'guru', NOW(), NOW())"
+            (name, username, email, password, remember_token, role, created_at, updated_at)
+         VALUES (?, ?, ?, ?, '', 'guru', NOW(), NOW())"
     );
 
+    $username = trim($nama); // Username mengikuti nama guru di database.
     mysqli_stmt_bind_param(
         $buat_akun,
-        'sss',
+        'ssss',
         $nama,
+        $username,
         $email,
         $password_hash
     );

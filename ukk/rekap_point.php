@@ -4,6 +4,17 @@ include 'config/koneksi.php';
 
 $embed = isset($_GET['embed']) && $_GET['embed'] === '1';
 
+$role = hak_role_efektif();
+$filterWali = '';
+if ($role === HAK_WALI_KELAS) {
+    $filterWali = " WHERE EXISTS (
+        SELECT 1 FROM t_kelas_siswa ks
+        INNER JOIN t_wali_kelas wk ON wk.kelas_id = ks.kelas_id AND wk.tahun_ajaran_id = ks.tahun_ajaran_id AND wk.status_aktif = 1
+        INNER JOIN t_guru g ON g.id = wk.guru_id
+        WHERE ks.siswa_id = s.id AND g.user_id = " . (int)($_SESSION['id'] ?? 0) . " AND ks.status_aktif = 1
+    )";
+}
+
 $sql = "
     SELECT
         s.id,
@@ -14,6 +25,7 @@ $sql = "
     FROM t_siswa s
     LEFT JOIN t_pelanggaran_siswa ps
         ON ps.siswa_id = s.id
+    " . $filterWali . "
     GROUP BY s.id, s.nis, s.nama
     ORDER BY total_poin DESC, s.nama ASC
 ";

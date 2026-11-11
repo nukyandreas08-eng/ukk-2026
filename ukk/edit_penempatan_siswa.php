@@ -258,7 +258,7 @@ $tahun = mysqli_query(
 
 
                 <!-- Formulir edit penempatan siswa -->
-                <form method="post">
+                <form method="post" action="edit_penempatan_siswa.php<?= $embed ? '?embed=1' : '' ?>">
 
                     <!-- Menyimpan ID dan status embed -->
                     <input
@@ -362,5 +362,6 @@ $tahun = mysqli_query(
         </div>
     </main>
 
+<script src="assets/siswa-search.js"></script>
 </body>
 </html>

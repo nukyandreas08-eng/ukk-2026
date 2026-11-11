@@ -153,11 +153,12 @@ if ($user_id < 1) {
     $buat_akun = mysqli_prepare(
         $koneksi,
         "INSERT INTO t_users
-            (name, email, password, remember_token, role, created_at, updated_at)
-         VALUES (?, ?, ?, '', 'guru', NOW(), NOW())"
+            (name, username, email, password, remember_token, role, created_at, updated_at)
+         VALUES (?, ?, ?, ?, '', 'guru', NOW(), NOW())"
     );
 
-    mysqli_stmt_bind_param($buat_akun, 'sss', $nama, $email, $password_hash);
+    $username = trim($nama); // Username mengikuti nama guru di database.
+    mysqli_stmt_bind_param($buat_akun, 'ssss', $nama, $username, $email, $password_hash);
 
     if (!mysqli_stmt_execute($buat_akun)) {
         mysqli_rollback($koneksi);
@@ -198,14 +199,15 @@ if ($guru_berhasil) {
         $update_akun = mysqli_prepare(
             $koneksi,
             "UPDATE t_users
-             SET name = ?, email = ?, password = ?, updated_at = NOW()
+             SET name = ?, username = ?, email = ?, password = ?, updated_at = NOW()
              WHERE id = ? AND role = 'guru'"
         );
 
         mysqli_stmt_bind_param(
             $update_akun,
-            'sssi',
+            'ssssi',
             $nama,
+            trim($nama),
             $email,
             $password_hash,
             $user_id
@@ -214,11 +216,11 @@ if ($guru_berhasil) {
         $update_akun = mysqli_prepare(
             $koneksi,
             "UPDATE t_users
-             SET name = ?, email = ?, updated_at = NOW()
+             SET name = ?, username = ?, email = ?, updated_at = NOW()
              WHERE id = ? AND role = 'guru'"
         );
 
-        mysqli_stmt_bind_param($update_akun, 'ssi', $nama, $email, $user_id);
+        mysqli_stmt_bind_param($update_akun, 'sssi', $nama, trim($nama), $email, $user_id);
     }
 
     $akun_berhasil = mysqli_stmt_execute($update_akun);

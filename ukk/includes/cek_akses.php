@@ -62,9 +62,9 @@ if (!function_exists('hak_daftar_grup')) {
             // Daftar ini mengikuti menu sidebar masing-masing peran,
             // sehingga menu yang tampil dan halaman yang dapat dibuka
             // selalu sama.
-            'catat_pelanggaran' => [HAK_GURU],
-            'tindakan' => [HAK_GURU],
-            'riwayat' => [HAK_WALI_KELAS, HAK_GURU],
+            'catat_pelanggaran' => [HAK_WALI_KELAS, HAK_GURU],
+            'tindakan' => [HAK_WALI_KELAS, HAK_GURU],
+            'riwayat' => [HAK_WALI_KELAS],
             'rekap_poin' => [HAK_WALI_KELAS, HAK_GURU],
             'laporan' => [HAK_ADMIN, HAK_WALI_KELAS, HAK_GURU],
         ];
@@ -180,6 +180,8 @@ if (!function_exists('hak_daftar_grup')) {
 
             HAK_WALI_KELAS => [
                 ['Dashboard', 'dashboard.php', 'bi-speedometer2'],
+                ['Catat Pelanggaran', 'catatan_pelanggaran.php', 'bi-journal-plus'],
+                ['Tindakan', 'tindakan.php', 'bi-clipboard-check'],
                 ['Riwayat Pelanggaran', 'riwayat.php', 'bi-clock-history'],
                 ['Rekap Poin', 'rekap_point.php', 'bi-bar-chart'],
                 ['Laporan', 'laporan.php', 'bi-file-earmark-text'],
@@ -189,7 +191,6 @@ if (!function_exists('hak_daftar_grup')) {
                 ['Dashboard', 'dashboard.php', 'bi-speedometer2'],
                 ['Catat Pelanggaran', 'catatan_pelanggaran.php', 'bi-journal-plus'],
                 ['Tindakan', 'tindakan.php', 'bi-clipboard-check'],
-                ['Riwayat Pelanggaran', 'riwayat.php', 'bi-clock-history'],
                 ['Laporan', 'laporan.php', 'bi-file-earmark-text'],
                 ['Rekap Poin', 'rekap_point.php', 'bi-bar-chart'],
             ],

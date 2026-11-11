@@ -211,6 +211,7 @@ if (!$query_siswa || !$query_kelas) {
 
 </div>
 
+<script src="assets/siswa-search.js"></script>
 <?php if (!$embed): ?>
 </body>
 </html>

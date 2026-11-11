@@ -680,22 +680,24 @@ INSERT INTO `t_tahun_ajaran` (`id`, `nama`, `tanggal_mulai`, `tanggal_selesai`, 
 CREATE TABLE `t_users` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
+  `username` varchar(80) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
   `email_verified_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `password` varchar(255) DEFAULT NULL,
   `remember_token` varchar(100) NOT NULL,
   `role` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  UNIQUE KEY `uq_t_users_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `t_users`
 --
 
-INSERT INTO `t_users` (`id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `role`, `created_at`, `updated_at`) VALUES
-(104, 'administrator', 'admin@gmail.com', '2026-10-02 01:14:07', '$2y$10$jBUNIkbpmaWi7C3ZgBeiD.ju6Np/LGvb/roqxrkheA6.TRpteGL1m', '', 'admin', '2026-10-02 01:14:07', '2026-10-02 01:14:07'),
-(106, 'guru', 'guru@gmail.com', '2026-10-02 03:22:57', '$2y$10$NJtQ5MEq5d.4PsusaHO9xu3kkxeaR6g1M7S8T6VB900fHauavKh5K', '', 'guru', '2026-10-02 03:22:57', '2026-10-02 03:22:57');
+INSERT INTO `t_users` (`id`, `name`, `username`, `email`, `email_verified_at`, `password`, `remember_token`, `role`, `created_at`, `updated_at`) VALUES
+(104, 'administrator', 'admin', 'admin@gmail.com', '2026-10-02 01:14:07', '$2y$10$jBUNIkbpmaWi7C3ZgBeiD.ju6Np/LGvb/roqxrkheA6.TRpteGL1m', '', 'admin', '2026-10-02 01:14:07', '2026-10-02 01:14:07'),
+(106, 'guru', 'guru', 'guru@gmail.com', '2026-10-02 03:22:57', '$2y$10$NJtQ5MEq5d.4PsusaHO9xu3kkxeaR6g1M7S8T6VB900fHauavKh5K', '', 'guru', '2026-10-02 03:22:57', '2026-10-02 03:22:57');
 
 -- --------------------------------------------------------
 
@@ -900,6 +902,38 @@ ALTER TABLE `t_wali_kelas`
   ADD CONSTRAINT `t_wali_kelas_ibfk_1` FOREIGN KEY (`guru_id`) REFERENCES `t_guru` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `t_wali_kelas_ibfk_2` FOREIGN KEY (`kelas_id`) REFERENCES `t_kelas` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `t_wali_kelas_ibfk_3` FOREIGN KEY (`tahun_ajaran_id`) REFERENCES `t_tahun_ajaran` (`id`) ON DELETE CASCADE;
+
+-- =========================================================
+-- AKUN LOGIN SEMUA GURU (username = nama guru)
+-- Password sementara: Guru2026!
+-- =========================================================
+INSERT INTO `t_users`
+  (`name`,`username`,`email`,`password`,`remember_token`,`role`,`created_at`,`updated_at`)
+SELECT
+  TRIM(g.`nama`),
+  TRIM(g.`nama`),
+  CONCAT('guru', g.`id`, '@sekolah.local'),
+  '$2y$12$XVFV7RDWOV8CARg70T71MOv8bYQeAClr0Vdg2QiP5x9jrkt5UlQHq',
+  '',
+  'guru',
+  NOW(),
+  NOW()
+FROM `t_guru` g
+WHERE g.`status_aktif` = 1
+  AND g.`nama` IS NOT NULL
+  AND TRIM(g.`nama`) <> ''
+ON DUPLICATE KEY UPDATE
+  `name` = VALUES(`name`),
+  `password` = VALUES(`password`),
+  `role` = 'guru',
+  `updated_at` = NOW();
+
+UPDATE `t_guru` g
+JOIN `t_users` u ON u.`username` = TRIM(g.`nama`) AND u.`role` = 'guru'
+SET g.`user_id` = u.`id`,
+    g.`updated_at` = NOW()
+WHERE g.`status_aktif` = 1;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

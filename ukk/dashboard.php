@@ -365,9 +365,7 @@ $menu = hak_menu_role($role);
 <script>
 const frame = document.getElementById('contentFrame');
 
-const links = document.querySelectorAll(
-    '.sidebar a[target="contentFrame"]'
-);
+const links = document.querySelectorAll('.sidebar a[target="contentFrame"]');
 
 
 // Mengubah warna menu yang dipilih
@@ -389,7 +387,9 @@ links.forEach(function(link) {
 // Menyorot menu sesuai halaman yang sedang dimuat di iframe
 function aktifkanMenuSesuaiFrame() {
 
-    const sumber = frame.getAttribute('src') || '';
+    let sumber = frame.src || frame.getAttribute('src') || '';
+    try { sumber = frame.contentWindow.location.href || sumber; } catch (e) {}
+    try { sumber = new URL(sumber, window.location.href).pathname.split('/').pop() + new URL(sumber, window.location.href).search; } catch (e) {}
 
     const bagian = sumber.split('?');
 
@@ -435,6 +435,18 @@ frame.addEventListener('load', function() {
         if (!halaman || !halaman.head) {
             return;
         }
+
+        // Semua tautan internal dan formulir dari halaman konten tetap
+        // dibuka di iframe, bukan mengganti halaman dashboard utama.
+        halaman.querySelectorAll('a[href]').forEach(function (a) {
+            const href = a.getAttribute('href') || '';
+            if (href && !href.startsWith('#') && !/^(https?:|mailto:|tel:|javascript:)/i.test(href)) {
+                a.setAttribute('target', 'contentFrame');
+            }
+        });
+        halaman.querySelectorAll('form').forEach(function (form) {
+            if (!form.hasAttribute('target')) form.setAttribute('target', 'contentFrame');
+        });
 
 
         // Menambahkan Bootstrap jika belum tersedia

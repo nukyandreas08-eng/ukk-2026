@@ -250,6 +250,7 @@ if (!$query_kelas || !$query_guru) {
 
 </div>
 
+<script src="assets/siswa-search.js"></script>
 <?php if (!$embed): ?>
 </body>
 </html>

@@ -1,0 +1,8 @@
+REVISI HAK AKSES WALI KELAS
+
+1. Wali kelas mendapatkan menu Tindakan dan Riwayat Pelanggaran.
+2. Data pada kedua menu dibatasi hanya untuk kelas yang ditugaskan pada akun wali kelas yang sedang login (relasi t_wali_kelas -> t_guru.user_id).
+3. Wali kelas hanya dapat menyimpan tindakan untuk siswa dari kelas perwaliannya.
+4. Kolom pencarian tersedia pada halaman Tindakan, Riwayat, dan daftar Catatan Pelanggaran.
+5. Saat status diubah menjadi Selesai, catatan otomatis tidak ditampilkan lagi di daftar Catatan Pelanggaran Aktif dan Tindakan. Data tidak dihapus permanen; tetap tersimpan dan dapat dilihat pada Riwayat Pelanggaran.
+6. Tidak memerlukan perubahan database. Pastikan penugasan wali kelas dan relasi t_guru.user_id sudah benar serta status_aktif=1.

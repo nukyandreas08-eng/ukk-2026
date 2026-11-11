@@ -233,6 +233,7 @@ $guruq = mysqli_query(
 
 </main>
 
+<script src="assets/siswa-search.js"></script>
 <?php if (!$embed): ?>
 </body>
 </html>

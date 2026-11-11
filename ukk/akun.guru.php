@@ -80,11 +80,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'buat_ak
                 $insert = mysqli_prepare(
                     $koneksi,
                     "INSERT INTO t_users
-                    (name, email, password, remember_token, role, created_at, updated_at)
-                    VALUES (?, ?, ?, '', 'guru', NOW(), NOW())"
+                    (name, username, email, password, remember_token, role, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, '', 'guru', NOW(), NOW())"
                 );
 
-                mysqli_stmt_bind_param($insert, 'sss', $guru['nama'], $emailAkun, $hash);
+                $username = 'guru' . preg_replace('/\D+/', '', (string)$guru['nip']);
+                mysqli_stmt_bind_param($insert, 'ssss', $guru['nama'], $username, $emailAkun, $hash);
 
                 if (!mysqli_stmt_execute($insert)) {
                     mysqli_rollback($koneksi);
