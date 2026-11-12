@@ -4,7 +4,13 @@ $embed=(($_GET['embed']??'')==='1');
 $role=hak_role_efektif();
 $sql="SELECT id,tanggal,nama_siswa,(SELECT nis FROM t_siswa WHERE t_siswa.id=t_pelanggaran_siswa.siswa_id) AS nis,nama_kelas,nama_pelanggaran,poin,keterangan,tindakan,status,nama_guru FROM t_pelanggaran_siswa";
 if($role===HAK_WALI_KELAS){
+ // Wali kelas melihat catatan untuk kelas yang menjadi tanggung jawabnya.
  $sql.=" WHERE EXISTS (SELECT 1 FROM t_wali_kelas wk INNER JOIN t_guru g ON g.id=wk.guru_id WHERE g.user_id=? AND wk.status_aktif=1 AND wk.kelas_id=t_pelanggaran_siswa.kelas_id AND (wk.tahun_ajaran_id=t_pelanggaran_siswa.tahun_ajaran_id OR t_pelanggaran_siswa.tahun_ajaran_id IS NULL))";
+ $sql.=" ORDER BY tanggal DESC,id DESC";
+ $st=mysqli_prepare($koneksi,$sql);$uid=(int)($_SESSION['id']??0);mysqli_stmt_bind_param($st,'i',$uid);mysqli_stmt_execute($st);$q=mysqli_stmt_get_result($st);
+}elseif($role===HAK_GURU){
+ // Guru biasa hanya melihat catatan yang dibuat oleh akun guru yang sedang login.
+ $sql.=" WHERE EXISTS (SELECT 1 FROM t_guru g WHERE g.id=t_pelanggaran_siswa.guru_id AND g.user_id=? AND g.status_aktif=1)";
  $sql.=" ORDER BY tanggal DESC,id DESC";
  $st=mysqli_prepare($koneksi,$sql);$uid=(int)($_SESSION['id']??0);mysqli_stmt_bind_param($st,'i',$uid);mysqli_stmt_execute($st);$q=mysqli_stmt_get_result($st);
 }else{$sql.=" ORDER BY tanggal DESC,id DESC";$q=mysqli_query($koneksi,$sql);}

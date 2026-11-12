@@ -1,8 +1,66 @@
 <?php
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
+include 'includes/tahun_ajaran.php';
 
 $embed = isset($_GET['embed']) && $_GET['embed'] === '1';
+
+// Filter tahun ajaran dan tanggal. Tanggal otomatis mengikuti tahun ajaran
+// yang dipilih, tetapi tetap dapat diubah manual oleh pengguna.
+$tahun_ajaran_id = isset($_GET['tahun_ajaran_id'])
+    ? (int) $_GET['tahun_ajaran_id']
+    : tahun_ajaran_aktif_id($koneksi);
+
+$query_tahun = mysqli_query(
+    $koneksi,
+    "SELECT id, nama, tanggal_mulai, tanggal_selesai
+     FROM t_tahun_ajaran
+     ORDER BY status_aktif DESC, tanggal_mulai DESC, id DESC"
+);
+if (!$query_tahun) {
+    die('Gagal mengambil data tahun ajaran: ' . mysqli_error($koneksi));
+}
+
+$daftarTahun = [];
+$tahunTerpilih = null;
+while ($ta = mysqli_fetch_assoc($query_tahun)) {
+    $daftarTahun[] = $ta;
+    if ((int)$ta['id'] === $tahun_ajaran_id) {
+        $tahunTerpilih = $ta;
+    }
+}
+
+// Jika ID tahun ajaran tidak ditemukan, gunakan tahun aktif yang tersedia.
+if (!$tahunTerpilih && !isset($_GET['tahun_ajaran_id'])) {
+    foreach ($daftarTahun as $ta) {
+        if ((int)$ta['id'] === $tahun_ajaran_id) {
+            $tahunTerpilih = $ta;
+            break;
+        }
+    }
+}
+
+function tanggal_valid($tanggal) {
+    if (!$tanggal || !preg_match('/^\\d{4}-\\d{2}-\\d{2}$/', $tanggal)) {
+        return false;
+    }
+    $d = DateTime::createFromFormat('Y-m-d', $tanggal);
+    return $d && $d->format('Y-m-d') === $tanggal;
+}
+
+$tanggal_mulai = isset($_GET['tanggal_mulai'])
+    ? trim($_GET['tanggal_mulai'])
+    : ($tahunTerpilih['tanggal_mulai'] ?? '');
+$tanggal_selesai = isset($_GET['tanggal_selesai'])
+    ? trim($_GET['tanggal_selesai'])
+    : ($tahunTerpilih['tanggal_selesai'] ?? '');
+
+if (!tanggal_valid($tanggal_mulai)) $tanggal_mulai = '';
+if (!tanggal_valid($tanggal_selesai)) $tanggal_selesai = '';
+if ($tanggal_mulai && $tanggal_selesai && $tanggal_mulai > $tanggal_selesai) {
+    $tanggal_mulai = '';
+    $tanggal_selesai = '';
+}
 
 $role = hak_role_efektif();
 $filterWali = '';
@@ -15,16 +73,26 @@ if ($role === HAK_WALI_KELAS) {
     )";
 }
 
+$filterTanggal = '';
+if ($tanggal_mulai !== '') {
+    $filterTanggal .= " AND ps.tanggal >= '" . mysqli_real_escape_string($koneksi, $tanggal_mulai) . "'";
+}
+if ($tanggal_selesai !== '') {
+    $filterTanggal .= " AND ps.tanggal <= '" . mysqli_real_escape_string($koneksi, $tanggal_selesai) . "'";
+}
+
 $sql = "
     SELECT
         s.id,
         s.nis,
         s.nama,
         COUNT(ps.id) AS jumlah_pelanggaran,
-        COALESCE(SUM(ps.poin), 0) AS total_poin
+        COALESCE(SUM(ps.poin), 0) AS total_poin,
+        COALESCE(GROUP_CONCAT(DISTINCT ta.nama ORDER BY ta.nama SEPARATOR ', '), '-') AS tahun_ajaran
     FROM t_siswa s
     LEFT JOIN t_pelanggaran_siswa ps
-        ON ps.siswa_id = s.id
+        ON ps.siswa_id = s.id " . $filterTanggal . "
+    LEFT JOIN t_tahun_ajaran ta ON ta.id = ps.tahun_ajaran_id
     " . $filterWali . "
     GROUP BY s.id, s.nis, s.nama
     ORDER BY total_poin DESC, s.nama ASC
@@ -76,6 +144,47 @@ function e($value) {
         </button>
     </div>
 
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3">Filter Rekap Poin</h5>
+            <form method="GET" action="rekap_point.php">
+                <?php if ($embed): ?>
+                    <input type="hidden" name="embed" value="1">
+                <?php endif; ?>
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-6">
+                        <label for="tahun_ajaran_id" class="form-label">Tahun Ajaran</label>
+                        <select id="tahun_ajaran_id" name="tahun_ajaran_id" class="form-select">
+                            <option value="0" <?= $tahun_ajaran_id === 0 ? 'selected' : '' ?>>Semua Tahun Ajaran</option>
+                            <?php foreach ($daftarTahun as $ta): ?>
+                                <option value="<?= (int)$ta['id'] ?>"
+                                    data-mulai="<?= e($ta['tanggal_mulai']) ?>"
+                                    data-selesai="<?= e($ta['tanggal_selesai']) ?>"
+                                    <?= $tahun_ajaran_id === (int)$ta['id'] ? 'selected' : '' ?>>
+                                    <?= e($ta['nama']) ?> (<?= e($ta['tanggal_mulai']) ?> s.d. <?= e($ta['tanggal_selesai']) ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label for="tanggal_mulai" class="form-label">Tanggal Awal</label>
+                        <input type="date" id="tanggal_mulai" name="tanggal_mulai"
+                               class="form-control" value="<?= e($tanggal_mulai) ?>">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label for="tanggal_selesai" class="form-label">Tanggal Akhir</label>
+                        <input type="date" id="tanggal_selesai" name="tanggal_selesai"
+                               class="form-control" value="<?= e($tanggal_selesai) ?>" min="<?= e($tanggal_mulai) ?>">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Tampilkan</button>
+                        <a href="rekap_point.php<?= $embed ? '?embed=1' : '' ?>" class="btn btn-outline-secondary">Reset Filter</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="table-responsive">
         <table id="tabelRekapPoin"
                class="table table-bordered table-hover align-middle w-100">
@@ -87,6 +196,7 @@ function e($value) {
                     <th>Nama Siswa</th>
                     <th>Jumlah Pelanggaran</th>
                     <th>Total Poin</th>
+                    <th>Tahun Ajaran</th>
                 </tr>
             </thead>
 
@@ -107,13 +217,14 @@ function e($value) {
                                 <?= (int) $data['total_poin'] ?>
                             </span>
                         </td>
+                        <td><?= e($data['tahun_ajaran'] ?? '-') ?></td>
                     </tr>
                 <?php
                     endwhile;
                 else:
                 ?>
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
+                        <td colspan="6" class="text-center text-muted py-4">
                             Belum ada data rekap poin pelanggaran siswa.
                         </td>
                     </tr>
@@ -169,6 +280,26 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+// Saat tahun ajaran diganti, tanggal awal dan akhir otomatis ikut berubah.
+document.addEventListener('DOMContentLoaded', function () {
+    const pilihTahun = document.getElementById('tahun_ajaran_id');
+    const inputMulai = document.getElementById('tanggal_mulai');
+    const inputSelesai = document.getElementById('tanggal_selesai');
+
+    if (pilihTahun && inputMulai && inputSelesai) {
+        pilihTahun.addEventListener('change', function () {
+            const opsi = pilihTahun.options[pilihTahun.selectedIndex];
+            if (pilihTahun.value === '0') {
+                inputMulai.value = '';
+                inputSelesai.value = '';
+            } else {
+                inputMulai.value = opsi.dataset.mulai || '';
+                inputSelesai.value = opsi.dataset.selesai || '';
+            }
+        });
+    }
+});
+
 function cetakLaporan() {
     window.print();
 }
@@ -212,7 +343,7 @@ function kembaliDashboard(event) {
     .dt-search,
     .dt-length,
     .dt-paging,
-    .dt-info {
+    .dt-info,\n    .card {
         display: none !important;
     }
 

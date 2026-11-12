@@ -6,22 +6,7 @@ include 'includes/tahun_ajaran.php';
 $embed = isset($_GET['embed']) && $_GET['embed'] === '1';
 $cetak = isset($_GET['cetak']) && $_GET['cetak'] === '1';
 
-// Jika belum ada pilihan, tahun ajaran aktif otomatis dipakai.
-$tahun_ajaran_id = isset($_GET['tahun_ajaran_id'])
-    ? (int) $_GET['tahun_ajaran_id']
-    : tahun_ajaran_aktif_id($koneksi);
-
 $kelas_id = (int) ($_GET['kelas_id'] ?? 0);
-
-$query_tahun = mysqli_query(
-    $koneksi,
-    "SELECT id, nama FROM t_tahun_ajaran
-     ORDER BY status_aktif DESC, id DESC"
-);
-
-if (!$query_tahun) {
-    die("Gagal mengambil data tahun ajaran: " . mysqli_error($koneksi));
-}
 
 $query_kelas = mysqli_query(
     $koneksi,
@@ -48,10 +33,6 @@ $sql = "
     JOIN t_tahun_ajaran ta ON ks.tahun_ajaran_id = ta.id
     WHERE 1 = 1
 ";
-
-if ($tahun_ajaran_id > 0) {
-    $sql .= " AND ks.tahun_ajaran_id = $tahun_ajaran_id";
-}
 
 if ($kelas_id > 0) {
     $sql .= " AND ks.kelas_id = $kelas_id";
@@ -114,26 +95,6 @@ function e($value) {
                 <?php endif; ?>
 
                 <div class="row g-3">
-                    <div class="col-12 col-md-5">
-                        <label for="tahun_ajaran_id" class="form-label">
-                            Tahun Ajaran
-                        </label>
-
-                        <select id="tahun_ajaran_id"
-                                name="tahun_ajaran_id"
-                                class="form-select">
-                            <option value="0">Semua Tahun Ajaran</option>
-
-                            <?php while ($ta = mysqli_fetch_assoc($query_tahun)): ?>
-                                <option
-                                    value="<?= (int) $ta['id'] ?>"
-                                    <?= $tahun_ajaran_id === (int) $ta['id'] ? 'selected' : '' ?>>
-                                    <?= e($ta['nama']) ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
-                    </div>
-
                     <div class="col-12 col-md-5">
                         <label for="kelas_id" class="form-label">Kelas</label>
 
