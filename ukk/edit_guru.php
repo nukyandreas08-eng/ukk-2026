@@ -158,11 +158,8 @@ function e($nilai)
                 class="form-control"
                 name="nip"
                 id="nip"
-                maxlength="10"
-                inputmode="numeric"
-                pattern="[0-9]{1,10}"
-                title="NIP hanya boleh angka, maksimal 10 digit"
-                oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,10)"
+                maxlength="30"
+                title="Masukkan NIP maksimal 30 karakter"
                 value="<?= e($guru['nip'] ?? '') ?>"
                 required
             >

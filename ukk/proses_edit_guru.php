@@ -24,15 +24,9 @@ $ubah_password = ($password !== '' || $konfirmasi_password !== '');
 
 $editGuru = 'edit_guru.php?id=' . (int) $id . $embedParam;
 
-if ($nip !== '' && !preg_match('/^\d{1,10}$/', $nip)) {
-    $_SESSION['pesan'] = 'NIP hanya boleh angka dan maksimal 10 digit.';
-    header('Location: ' . $kelolaGuru);
-    exit;
-}
-
 if (
     !$id || $id < 1 ||
-    $nip === '' || !preg_match('/^\d{1,10}$/', $nip) ||
+    $nip === '' || strlen($nip) > 30 ||
     $nama === '' ||
     !filter_var($email, FILTER_VALIDATE_EMAIL) ||
     !in_array($status_aktif, [0, 1], true) ||
@@ -193,6 +187,8 @@ $guru_berhasil = mysqli_stmt_execute($update_guru);
 
 // Sinkronkan nama dan email akun dengan data guru.
 if ($guru_berhasil) {
+    $username = trim($nama);
+
     if ($ubah_password) {
         $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
@@ -207,7 +203,7 @@ if ($guru_berhasil) {
             $update_akun,
             'ssssi',
             $nama,
-            trim($nama),
+            $username,
             $email,
             $password_hash,
             $user_id
@@ -220,7 +216,7 @@ if ($guru_berhasil) {
              WHERE id = ? AND role = 'guru'"
         );
 
-        mysqli_stmt_bind_param($update_akun, 'sssi', $nama, trim($nama), $email, $user_id);
+        mysqli_stmt_bind_param($update_akun, 'sssi', $nama, $username, $email, $user_id);
     }
 
     $akun_berhasil = mysqli_stmt_execute($update_akun);
