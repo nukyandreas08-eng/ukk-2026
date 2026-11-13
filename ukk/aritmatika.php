@@ -14,3 +14,4 @@ if (!$up) {
 
             if (mysqli_stmt_execute($up)) {
                 mysqli_stmt_close($up);
+?>
