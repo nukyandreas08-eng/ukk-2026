@@ -11,7 +11,7 @@ if (!isset($GLOBALS['koneksi']) || !($GLOBALS['koneksi'] instanceof mysqli)) {
     $host = 'localhost';
     $user = 'root';
     $password = '';
-    $database = 'db_ukk_2026';
+    $database = 'ukk_2026';
 
     $koneksi = mysqli_connect($host, $user, $password, $database);
 

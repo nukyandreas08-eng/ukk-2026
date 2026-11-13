@@ -66,7 +66,7 @@ if (!function_exists('hak_daftar_grup')) {
             'tindakan' => [HAK_WALI_KELAS, HAK_GURU],
             'riwayat' => [HAK_WALI_KELAS, HAK_GURU],
             'rekap_poin' => [HAK_WALI_KELAS, HAK_GURU],
-            'laporan' => [HAK_ADMIN, HAK_WALI_KELAS, HAK_GURU],
+            'laporan' => [HAK_ADMIN, HAK_WALI_KELAS],
         ];
     }
 
@@ -192,7 +192,6 @@ if (!function_exists('hak_daftar_grup')) {
                 ['Catat Pelanggaran', 'catatan_pelanggaran.php', 'bi-journal-plus'],
                 ['Tindakan', 'tindakan.php', 'bi-clipboard-check'],
                 ['Riwayat Pelanggaran', 'riwayat.php', 'bi-clock-history'],
-                ['Laporan', 'laporan.php', 'bi-file-earmark-text'],
                 ['Rekap Poin', 'rekap_point.php', 'bi-bar-chart'],
             ],
         ];
